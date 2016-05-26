@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2MCTargetDesc.h"
+#include "J2MCAsmInfo.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCInstrInfo.h"
@@ -38,6 +39,12 @@ static MCInstrInfo *createJ2MCInstrInfo() {
   return X;
 }
 
+static MCAsmInfo *createJ2MCAsmInfo(const MCRegisterInfo &MRI,
+                                    const Triple &TT) {
+  MCAsmInfo *MAI = new J2MCAsmInfo(TT);
+  return MAI;
+}
+
 extern "C" void LLVMInitializeJ2TargetMC() {
   Target *T = &TheJ2Target;
   // Register the MC register info.
@@ -45,4 +52,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
 
   // Register the MC instruction info.
   TargetRegistry::RegisterMCInstrInfo(*T, createJ2MCInstrInfo);
+
+  // Register the MC asm info.
+  RegisterMCAsmInfoFn X(*T, createJ2MCAsmInfo);
 }

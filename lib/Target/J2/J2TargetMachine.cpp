@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2TargetMachine.h"
+#include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
@@ -33,4 +34,24 @@ J2TargetMachine::J2TargetMachine(const Target &T, const Triple &TT,
                                  Optional<Reloc::Model> RM, CodeModel::Model CM,
                                  CodeGenOpt::Level OL)
     : LLVMTargetMachine(T, computeDataLayout(TT), TT, CPU, FS, Options,
-                        getEffectiveRelocModel(RM), CM, OL) {}
+                        getEffectiveRelocModel(RM), CM, OL) {
+  initAsmInfo();
+}
+
+TargetPassConfig *J2TargetMachine::createPassConfig(PassManagerBase &PM) {
+  struct J2PassConfig : public TargetPassConfig {
+    J2PassConfig(J2TargetMachine *TM, PassManagerBase &PM)
+        : TargetPassConfig(TM, PM) {}
+
+    J2TargetMachine &getJ2TargetMachine() const {
+      return getTM<J2TargetMachine>();
+    }
+
+    bool addInstSelector() override {
+      // FIXME : Add instruction selector.
+      return false;
+    }
+  };
+
+  return new J2PassConfig(this, PM);
+}
