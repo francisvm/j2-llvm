@@ -197,6 +197,7 @@ ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(IO &IO,
   ECase(EM_RISCV)
   ECase(EM_LANAI)
   ECase(EM_BPF)
+  ECase(EM_J2)
 #undef ECase
 }
 
@@ -541,6 +542,9 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
     break;
   case ELF::EM_BPF:
 #include "llvm/Support/ELFRelocs/BPF.def"
+    break;
+  case ELF::EM_J2:
+#include "llvm/Support/ELFRelocs/J2.def"
     break;
   default:
     llvm_unreachable("Unsupported architecture");
