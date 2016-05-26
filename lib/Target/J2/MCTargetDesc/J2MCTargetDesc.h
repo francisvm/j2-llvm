@@ -34,4 +34,10 @@ extern Target TheJ2Target;
 
 } // End llvm namespace
 
+#define GET_REGINFO_ENUM
+#include "J2GenRegisterInfo.inc"
+
+#define GET_SUBTARGETINFO_ENUM
+#include "J2GenSubtargetInfo.inc"
+
 #endif
