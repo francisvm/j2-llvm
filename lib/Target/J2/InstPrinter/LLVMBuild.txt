@@ -1,4 +1,4 @@
-;===- ./lib/Target/J2/MCTargetDesc/LLVMBuild.txt ---------------*- Conf -*--===;
+;===- ./lib/Target/J2/InstPrinter/LLVMBuild.txt ----------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -17,11 +17,9 @@
 
 [component_0]
 type = Library
-name = J2Desc
+name = J2AsmPrinter
 parent = J2
 required_libraries =
-  J2AsmPrinter
-  J2Info
   MC
   Support
 
