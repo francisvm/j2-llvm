@@ -19,6 +19,9 @@
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/MC/MCSchedule.h"
+#include "llvm/MC/MCSubtargetInfo.h"
+#include "llvm/MC/SubtargetFeature.h"
 #include "llvm/Support/TargetRegistry.h"
 
 using namespace llvm;
@@ -28,6 +31,16 @@ using namespace llvm;
 
 #define GET_INSTRINFO_MC_DESC
 #include "J2GenInstrInfo.inc"
+
+#define GET_SUBTARGETINFO_MC_DESC
+#include "J2GenSubtargetInfo.inc"
+
+StringRef J2_MC::selectJ2CPU(const Triple &TT, StringRef CPU) {
+  if (CPU.empty() || CPU == "generic") {
+    CPU = "j2";
+  }
+  return CPU;
+}
 
 static MCRegisterInfo *createJ2MCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
@@ -67,6 +80,12 @@ static MCInstPrinter *createJ2MCInstPrinter(const Triple &T,
   return new J2InstPrinter(MAI, MII, MRI);
 }
 
+static MCSubtargetInfo *createJ2MCSubtargetInfo(const Triple &TT, StringRef CPU,
+                                                StringRef FS) {
+  CPU = J2_MC::selectJ2CPU(TT, CPU);
+  return createJ2MCSubtargetInfoImpl(TT, CPU, FS);
+}
+
 extern "C" void LLVMInitializeJ2TargetMC() {
   Target *T = &TheJ2Target;
   // Register the MC register info.
@@ -86,4 +105,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
 
   // Register the MCInstPrinter.
   TargetRegistry::RegisterMCInstPrinter(*T, createJ2MCInstPrinter);
+
+  // Register the MCSubtarget info.
+  TargetRegistry::RegisterMCSubtargetInfo(*T, createJ2MCSubtargetInfo);
 }
