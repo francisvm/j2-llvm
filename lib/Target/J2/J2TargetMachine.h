@@ -15,12 +15,15 @@
 #define LLVM_LIB_TARGET_J2_J2TARGETMACHINE_H
 
 #include "llvm/Target/TargetMachine.h"
+#include <memory>
 
 namespace llvm {
 
 extern llvm::Target TheJ2Target;
 
 class J2TargetMachine : public LLVMTargetMachine {
+  std::unique_ptr<TargetLoweringObjectFile> TLOF;
+
 public:
   J2TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                   StringRef FS, const TargetOptions &Options,
@@ -28,6 +31,10 @@ public:
                   CodeGenOpt::Level OL);
 
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
+
+  TargetLoweringObjectFile *getObjFileLowering() const override {
+    return TLOF.get();
+  }
 };
 
 } // end namespace llvm
