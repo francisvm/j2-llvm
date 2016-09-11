@@ -28,7 +28,7 @@ J2RegisterInfo::J2RegisterInfo() : J2GenRegisterInfo(J2::PR) {}
 
 const MCPhysReg *
 J2RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-  return nullptr;
+  return CSR_SaveList;
 }
 
 BitVector J2RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
