@@ -37,6 +37,9 @@ MCAsmBackend *createJ2AsmBackend(const Target &T, const MCRegisterInfo &MRI,
                                  const Triple &TT, StringRef CPU,
                                  const MCTargetOptions &Options);
 
+MCCodeEmitter *createJ2MCCodeEmitter(const MCInstrInfo &MCII,
+                                     const MCRegisterInfo &MRI, MCContext &Ctx);
+
 namespace J2_MC {
 StringRef selectJ2CPU(const Triple &TT, StringRef CPU);
 }

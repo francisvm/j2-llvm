@@ -111,4 +111,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
 
   // Register the MCAsmBackend.
   TargetRegistry::RegisterMCAsmBackend(*T, createJ2AsmBackend);
+
+  // Register the MCCodeEmitter.
+  TargetRegistry::RegisterMCCodeEmitter(*T, createJ2MCCodeEmitter);
 }
