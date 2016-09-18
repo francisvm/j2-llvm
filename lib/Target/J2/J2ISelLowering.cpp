@@ -26,6 +26,8 @@ J2TargetLowering::J2TargetLowering(const J2TargetMachine &TM,
   // Add GPR class as i32 registers.
   addRegisterClass(MVT::i32, &J2::GPRRegClass);
   computeRegisterProperties(STI.getRegisterInfo());
+
+  setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
 }
 
 const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -37,11 +39,32 @@ const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {
     return #X
 
     CASE(Ret);
+    CASE(Call);
+    CASE(Wrapper);
 
 #undef CASE
   }
 
   return nullptr;
+}
+
+SDValue J2TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
+  switch (Op.getOpcode()) {
+  case ISD::GlobalAddress:
+    return LowerGlobalAddress(Op, DAG);
+  default:
+    llvm_unreachable("unimplemented operation");
+  }
+}
+
+SDValue J2TargetLowering::LowerGlobalAddress(SDValue Op,
+                                             SelectionDAG &DAG) const {
+  SDLoc DL{Op};
+  const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
+  auto Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
+  SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, Offset);
+
+  return DAG.getNode(J2ISD::Wrapper, DL, MVT::i32, GA);
 }
 
 //===----------------------------------------------------------------------===//
@@ -113,4 +136,82 @@ J2TargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
     RetOps.push_back(Glue);
 
   return DAG.getNode(J2ISD::Ret, DL, MVT::Other, RetOps);
+}
+
+SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                                    SmallVectorImpl<SDValue> &InVals) const {
+  SelectionDAG &DAG = CLI.DAG;
+  SDLoc &DL = CLI.DL;
+  SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
+  SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
+  SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
+  SDValue Chain = CLI.Chain;
+  SDValue Callee = CLI.Callee;
+  CallingConv::ID CallConv = CLI.CallConv;
+  bool isVarArg = CLI.IsVarArg;
+
+  CLI.IsTailCall = false;
+
+  assert(!isVarArg && "Variable arguments not supported.");
+
+  SmallVector<CCValAssign, 16> ArgLocs;
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), ArgLocs,
+                 *DAG.getContext());
+  CCInfo.AnalyzeCallOperands(Outs, CC_J2);
+
+  SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
+  // FIXME: Handle more than 4 arguments.
+
+  // But also, we need to glue them in order to avoid inserting other
+  // instructions in the middle of the lowering.
+  SDValue Glue;
+  for (size_t i = 0, e = ArgLocs.size(); i != e; ++i) {
+    CCValAssign &VA = ArgLocs[i];
+    SDValue Arg = OutVals[i];
+
+    if (VA.isRegLoc()) {
+      // Copy the argument to the argument register. Update chain and glue.
+      Chain = DAG.getCopyToReg(Chain, DL, VA.getLocReg(), Arg, Glue);
+      Glue = Chain.getValue(1);
+      RegsToPass.emplace_back(VA.getLocReg(), Arg);
+    }
+
+    if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
+      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), DL, MVT::i32);
+    else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
+      Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
+  }
+
+  SmallVector<SDValue, 8> Ops{Chain, Callee};
+  std::transform(RegsToPass.begin(), RegsToPass.end(), std::back_inserter(Ops),
+                 [&](std::pair<unsigned, SDValue> &elt) {
+                   return DAG.getRegister(elt.first, elt.second.getValueType());
+                 });
+
+  // FIXME: Caller save registers.
+
+  if (Glue.getNode()) // Push the glue, if it's present.
+    Ops.push_back(Glue);
+
+  SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
+  Chain = DAG.getNode(J2ISD::Call, DL, NodeTys, Ops);
+  Glue = Chain.getValue(1);
+
+  {
+    // Return value.
+    SmallVector<CCValAssign, 16> RVLocs;
+    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), RVLocs,
+                   *DAG.getContext());
+    CCInfo.AnalyzeCallResult(Ins, RetCC_J2);
+
+    for (auto &Loc : RVLocs) {
+      auto RetValue =
+          DAG.getCopyFromReg(Chain, DL, Loc.getLocReg(), Loc.getValVT(), Glue);
+      Chain = RetValue.getValue(1);
+      Glue = RetValue.getValue(2);
+      InVals.push_back(Chain.getValue(0));
+    }
+  }
+
+  return Chain;
 }

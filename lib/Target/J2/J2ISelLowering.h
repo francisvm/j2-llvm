@@ -26,6 +26,13 @@ enum NodeType : unsigned {
 
   // Ret
   Ret,
+
+  // Call
+  Call,
+
+  // Wrapper
+  Wrapper,
+
 };
 }
 
@@ -52,6 +59,13 @@ public:
                       const SmallVectorImpl<ISD::OutputArg> &Outs,
                       const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                       SelectionDAG &DAG) const override;
+
+  SDValue LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                    SmallVectorImpl<SDValue> &InVals) const override;
+
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
+  SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 };
 }
 
