@@ -18,6 +18,9 @@ enum Fixups {
   // Branch fixups resulting in R_J2_NONE.
   fixup_J2_NONE = FirstTargetFixupKind,
 
+  // Branch and link
+  fixup_J2_BSR,
+
   // Marker
   LastTargetFixupKind,
   NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
