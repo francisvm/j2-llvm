@@ -13,7 +13,10 @@
 
 #include "J2RegisterInfo.h"
 #include "J2FrameLowering.h"
+#include "J2Subtarget.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/Target/TargetSubtargetInfo.h"
 
 using namespace llvm;
@@ -22,6 +25,9 @@ using namespace llvm;
 
 #define GET_REGINFO_TARGET_DESC
 #include "J2GenRegisterInfo.inc"
+
+#define GET_INSTRINFO_ENUM
+#include "J2GenInstrInfo.inc"
 
 // PR is the register containing the return address.
 J2RegisterInfo::J2RegisterInfo() : J2GenRegisterInfo(J2::PR) {}
@@ -44,12 +50,33 @@ BitVector J2RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   return Reserved;
 }
 
+bool J2RegisterInfo::isCalleeSavedIndex(int FrameIdx,
+                                        MachineFrameInfo &MFI) const {
+  auto &CSI = MFI.getCalleeSavedInfo();
+
+  if (CSI.empty())
+    return false;
+
+  return FrameIdx >= CSI.front().getFrameIdx() &&
+         FrameIdx <= CSI.back().getFrameIdx();
+}
+
 // FrameIndex represent objects inside a abstract stack.
 // We must replace FrameIndex with an stack/frame pointer
 // direct reference.
 void J2RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                          int SPAdj, unsigned FIOperandNum,
                                          RegScavenger *RS) const {
-  // FIXME: Eliminate them.
-  return;
+  MachineInstr &MI = *II;
+  MachineBasicBlock &MBB = *MI.getParent();
+  MachineFunction &MF = *MBB.getParent();
+  DebugLoc DL = MI.getDebugLoc();
+  int FrameIdx = MI.getOperand(FIOperandNum).getIndex();
+  auto isCalleeSaved = isCalleeSavedIndex(FrameIdx, MF.getFrameInfo());
+
+  // Use SP for callee-saved registers.
+  unsigned BaseReg = isCalleeSaved ? J2::R15 : getFrameRegister(MF);
+
+  MI.getOperand(FIOperandNum).ChangeToRegister(BaseReg, false);
+  // FIXME: Callee saved registers.
 }
