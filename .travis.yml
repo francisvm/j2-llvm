@@ -1,0 +1,55 @@
+# C++ language configuration.
+language: cpp
+
+# Install dependencies
+addons:
+  apt:
+    sources:
+      ubuntu-toolchain-r-test
+    packages:
+      g++-6
+
+script:
+  - git config --global user.email "visoiu_f@epita.fr"
+  - git config --global user.name "Francis Visoiu Mistrih"
+  - export ROOT=`pwd`
+
+  # Get newer cmake
+  - wget --no-check-certificate http://cmake.org/files/v3.7/cmake-3.7.0-rc1-Linux-x86_64.tar.gz
+  - tar -xf cmake-3.7.0-rc1-Linux-x86_64.tar.gz
+  - export PATH=$ROOT/cmake-3.7.0-rc1-Linux-x86_64/bin:$PATH
+
+  # Add clang
+  - git clone https://github.com/thegameg/clang.git -b j2 tools/clang
+  - cd tools/clang
+  - git remote add upstream http://llvm.org/git/clang.git
+  - git pull --rebase upstream master
+  - cd -
+
+  # Add lld
+  - git clone https://github.com/thegameg/lld.git -b j2 tools/lld
+  - cd tools/lld
+  - git remote add upstream http://llvm.org/git/lld.git
+  - git pull --rebase upstream master
+  - cd -
+
+  # Pull llvm
+  - git remote add upstream http://llvm.org/git/llvm.git
+  - git pull --rebase upstream master
+
+  # Build llvm
+  - mkdir build && cd build
+  - CC=gcc-6 CXX=g++-6 cmake -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="J2"
+                             -DLLVM_TARGETS_TO_BUILD="J2"
+                             -DLLVM_BUILD_TOOLS=ON
+                             -DLLVM_INCLUDE_TOOLS=ON
+                             -DLLVM_INCLUDE_EXAMPLES=OFF
+                             -DLLVM_BUILD_EXAMPLES=OFF
+                             -DLLVM_BUILD_TESTS=ON
+                             -DLLVM_INCLUDE_TESTS=ON
+                             -DBUILD_SHARED_LIBS=ON
+                             ..
+                             #- make
+  - make check-llvm-codegen-j2
+  - make clangBasic clangDriver
+  - make lldELF

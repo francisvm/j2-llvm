@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/thegameg/j2-llvm.svg?branch=j2)](https://travis-ci.org/thegameg/j2-llvm)
+
 Low Level Virtual Machine (LLVM)
 ================================
 
