@@ -65,9 +65,20 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 
   // MO must be an Expr.
   assert(MO.isExpr() && MO.getExpr()->getKind() == MCExpr::SymbolRef);
-  assert(MI.getOpcode() == J2::BSR);
 
-  J2::Fixups FixupKind = J2::fixup_J2_BSR;
+  J2::Fixups FixupKind = J2::fixup_J2_NONE;
+
+  switch (MI.getOpcode()) {
+#define CASE(X)                                                                \
+  case J2::X:                                                                  \
+    FixupKind = J2::fixup_J2_##X;                                              \
+    break
+
+    CASE(BSR);
+    CASE(BRA);
+  default:
+    llvm_unreachable("Opcode not handled.");
+  }
 
   Fixups.push_back(
       MCFixup::create(0, MO.getExpr(), MCFixupKind(FixupKind), MI.getLoc()));

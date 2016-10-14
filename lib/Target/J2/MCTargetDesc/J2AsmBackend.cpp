@@ -41,6 +41,7 @@ protected:
     switch ((unsigned)Fixup.getKind()) {
       FIXUP(NONE);
       FIXUP(BSR);
+      FIXUP(BRA);
     default:
       llvm_unreachable("Unkown fixup!");
     }
@@ -59,6 +60,7 @@ const MCFixupKindInfo &J2AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       // Name         offset size flags
       {"fixup_J2_NONE", 0, 0, 0},
       {"fixup_J2_BSR", 4, 12, MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_J2_BRA", 4, 12, MCFixupKindInfo::FKF_IsPCRel},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -75,12 +77,14 @@ void J2AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
                               bool IsPCRel) const {
   auto Offset = Fixup.getOffset();
   switch ((unsigned)Fixup.getKind()) {
-  case J2::fixup_J2_BSR: {
+  case J2::fixup_J2_BSR:
+  case J2::fixup_J2_BRA:
+  {
     // Displacement is by Value * 2;
     int64_t PcRelOffset = Value;
     PcRelOffset >>= 2;
     PcRelOffset &= 0xFFF;
-    *(uint16_t *)(Data + Offset) &= (~0) << 12;
+    *(uint16_t *)(Data + Offset) &= (uint16_t)(~0) << 12;
     *(uint16_t *)(Data + Offset) |= PcRelOffset;
     break;
   }

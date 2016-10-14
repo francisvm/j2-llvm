@@ -20,6 +20,8 @@ def i32immSExt8 : ImmLeaf<i32, [{ return isInt<8>(Imm); }]>;
 
 def j2CallTarget : Operand<i32>;
 
+def j2BRATarget : Operand<OtherVT>;
+
 //===----------------------------------------------------------------------===//
 // Describe profiles and nodes
 //===----------------------------------------------------------------------===//
@@ -54,6 +56,12 @@ def JSR : FM<0x4, 0xB, (outs), (ins GPR:$rm),
 
 def BSR : FD12<0xB, (outs), (ins j2CallTarget:$target),
                "bsr\t$target", [ (J2Call tglobaladdr:$target) ], NoItinerary>;
+}
+
+let isBranch = 1, isTerminator = 1, hasDelaySlot = 1 in {
+def BRA : FD12<0xA, (outs), (ins j2BRATarget:$target),
+               "bra\t$target", [ (br bb:$target) ],
+               NoItinerary>;
 }
 
 def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
