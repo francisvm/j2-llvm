@@ -76,6 +76,7 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 
     CASE(BSR);
     CASE(BRA);
+    CASE(BT);
   default:
     llvm_unreachable("Opcode not handled.");
   }

@@ -28,6 +28,7 @@ J2TargetLowering::J2TargetLowering(const J2TargetMachine &TM,
   computeRegisterProperties(STI.getRegisterInfo());
 
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i32, Expand);
 }
 
 const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {

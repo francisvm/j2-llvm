@@ -62,6 +62,12 @@ let isBranch = 1, isTerminator = 1, hasDelaySlot = 1 in {
 def BRA : FD12<0xA, (outs), (ins j2BRATarget:$target),
                "bra\t$target", [ (br bb:$target) ],
                NoItinerary>;
+
+let Uses = [ SR ] in {
+def BT : FD<0x89, (outs), (ins j2BRATarget:$target),
+            "bt\t$target", [ (brcond SR, bb:$target) ],
+            NoItinerary>;
+}
 }
 
 def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
@@ -150,3 +156,46 @@ def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV8ri tglobaladdr:$in)>;
 
 // Calling a target global addr, results in calling the global addr.
 def : Pat<(J2Call (J2Wrapper tglobaladdr:$in)), (BSR tglobaladdr:$in)>;
+
+let isCompare = 1, Defs = [ SR ] in { // Sets the T bit
+class CMP<bits<4> op, bits<4> data, string asmstr, CondCode CC>
+    : FNM<op, data, (outs), (ins GPR:$rm, GPR:$rn), asmstr,
+      [ (set SR, (setcc GPR:$rm, GPR:$rn, CC)) ], NoItinerary> {}
+
+def CMPEQrr : CMP<0x3, 0x0, "cmp/eq\t$rm, $rn", SETUEQ>;
+def CMPHSrr : CMP<0x3, 0x2, "cmp/hs\t$rm, $rn", SETGE>;
+def CMPGErr : CMP<0x3, 0x3, "cmp/ge\t$rm, $rn", SETUGE>;
+def CMPHIrr : CMP<0x3, 0x6, "cmp/hi\t$rm, $rn", SETULE>;
+def CMPGTrr : CMP<0x3, 0x7, "cmp/gt\t$rm, $rn", SETGT>;
+
+def CMPPLrz : FN<0x4, 0x15, (outs), (ins GPR:$rn),
+                 "cmp/pl\t$rn",
+                 [ (set SR, (setcc GPR:$rn, (i32 0), SETGT)) ], NoItinerary>;
+
+def CMPPZrz : FN<0x4, 0x11, (outs), (ins GPR:$rn),
+                 "cmp/pz\t$rn",
+                 [ (set SR, (setcc GPR:$rn, (i32 0), SETGE)) ], NoItinerary>;
+
+let Uses = [ R0 ] in {
+def CMPEQRi : FI<0x88, (outs), (ins i32imm:$imm),
+                 "cmp/eq\t$imm, r0",
+                 [ (set SR, (setcc R0, i32immSExt8:$imm, SETEQ)) ],
+                 NoItinerary>;
+}
+}
+
+// J2 does not support `a < b` cmp. `a < b` <=> `b >= a`
+def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETLT),
+          (CMPGErr $rn, $rm)>;
+
+// J2 does not support `a u< b` cmp. `a u< b` <=> `b u>= a`
+def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETULT),
+          (CMPGErr $rn, $rm)>;
+
+// J2 does not support `a u< b` cmp. `a u< b` <=> `b u>= a`
+def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETUGT),
+          (CMPHIrr $rn, $rm)>;
+
+// J2 does not support `a <= b` cmp. `a <= b` <=> `b > a`
+def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETLE),
+          (CMPGTrr $rn, $rm)>;

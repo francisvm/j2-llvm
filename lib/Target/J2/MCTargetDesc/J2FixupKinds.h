@@ -24,6 +24,9 @@ enum Fixups {
   // Unconditional jump
   fixup_J2_BRA,
 
+  // Conditional jump
+  fixup_J2_BT,
+
   // Marker
   LastTargetFixupKind,
   NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
