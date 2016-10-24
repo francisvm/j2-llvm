@@ -32,6 +32,8 @@ J2TargetLowering::J2TargetLowering(const J2TargetMachine &TM,
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   setOperationAction(ISD::SHL, MVT::i32, Custom);
   setOperationAction(ISD::SRL, MVT::i32, Custom);
+  setOperationAction(ISD::SMUL_LOHI, MVT::i32, Expand);
+  setOperationAction(ISD::UMUL_LOHI, MVT::i32, Expand);
 }
 
 const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {
