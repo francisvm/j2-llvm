@@ -6,4 +6,5 @@ entry:
 ; CHECK: foo:
 ; CHECK: mov #30, r0
 ; CHECK: rts
+; CHECK-NEXT: nop
 }
