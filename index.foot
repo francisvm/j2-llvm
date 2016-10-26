@@ -1,0 +1,14 @@
+    </textarea>
+    <script src="vendor/remark.js"></script>
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'tomorrow-night',
+          highlightLanguage: 'c++',
+          highlightLines: true
+        }) ;
+    </script>
+  </body>
+</html>

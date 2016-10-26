@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>LLVM / Clang</title>
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Source+Code+Pro);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono);
+      @import url(https://fonts.googleapis.com/css?family=Inconsolata);
+
+      body {
+        font-family: 'Source Code Pro';
+      }
+      h1, h2, h3 {
+        font-family: 'Inconsolata';
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+      .remark-slide-scaler {
+        background-color: transparent;
+        overflow: hidden;
+        position: absolute;
+        -webkit-transform-origin: top left;
+        -moz-transform-origin: top left;
+        transform-origin: top-left;
+        -moz-box-shadow: 0 0 0px #111;
+        -webkit-box-shadow: 0 0 0px #111;
+        box-shadow: 0 0 0px #111;
+      }
+      .remark-slides-area { background: #111111; }
+      .remark-slide-content h1 { font-size: 2.8em; }
+      .remark-slide-content h2 { font-size: 2em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .remark-code { text-align: left; }
+      .remark-code-line-highlighted {
+        background: rgba(168, 0, 0, 0.4);
+        -moz-box-shadow: 0 0 8px #111;
+        -webkit-box-shadow: 0 0 8px #111;
+        box-shadow: 0 0 8px #111;
+      }
+      .footnote {
+        position: absolute;
+        bottom: 3em;
+        font-size: 9pt;
+      }
+      a, a > code {
+        color: #cc6666;
+        text-decoration: none;
+      }
+      code {
+        border-radius: 8px;
+        font-family: 'Ubuntu Mono';
+      }
+      .inverse {
+        background: #111111;
+        color: #cfcfcf;
+        text-shadow: 0 0 5px #000;
+        position: left;
+      }
+      .inverse h1, .inverse h2 {
+        color: #c5c8c6;
+        line-height: 0.8em;
+      }
+
+      /* Slide-specific styling */
+      #slide-inverse .footnote {
+        bottom: 12px;
+        left: 20px;
+      }
+      #slide-how .slides {
+        font-size: 0.9em;
+        position: absolute;
+        top:  151px;
+        right: 140px;
+      }
+      #slide-how .slides h3 {
+        margin-top: 0.2em;
+      }
+      #slide-how .slides .first, #slide-how .slides .second {
+        padding: 1px 20px;
+        height: 90px;
+        width: 120px;
+        -moz-box-shadow: 0 0 10px #777;
+        -webkit-box-shadow: 0 0 10px #777;
+        box-shadow: 0 0 10px #777;
+      }
+      #slide-how .slides .first {
+        background: #fff;
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        z-index: 1;
+      }
+      #slide-how .slides .second {
+        position: relative;
+        background: #fff;
+        z-index: 0;
+      }
+      li {
+        text-align: left;
+      }
+      .clangcfg img {
+        max-width: 75%;
+      }
+      .selectiondag img {
+        max-width: 63%;
+      }
+      .selectiondagmodified img {
+        max-width: 50%;
+      }
+
+      .mcinst {
+        margin: 0 auto;
+        max-width: 53%;
+      }
+      .objdump {
+        margin: 0 auto;
+        max-width: 84%;
+      }
+      .asmprinter {
+        margin: 0 auto;
+        max-width: 80%;
+      }
+      .twitter * {
+        color: #00aced;
+        font-size: 10pt;
+      }
+      .llvm img {
+        max-width:25%;
+      }
+      .urls {
+        padding-bottom: 10px;
+      }
+      .urls * {
+        font-size: 10pt;
+        text-align: center;
+      }
+
+    </style>
+  </head>
+  <body>
+    <textarea id="source">

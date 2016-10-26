@@ -1,0 +1,95 @@
+class: top, center, inverse
+
+# Toolchain
+
+### Compilation - cc1
+
+--
+
+### Assembly - as
+
+--
+
+### Linking - ld
+
+--
+
+### Runtime - builtins / libc
+
+---
+
+class: top, center, inverse
+
+# Compilation
+
+### Lexing
+
+--
+
+### Parsing
+
+--
+
+### Semantic analysis
+
+--
+
+### Intermediate representation
+
+--
+
+### IR optimizations
+
+--
+
+### Instruction selection
+
+--
+
+### Register allocation
+
+---
+
+class: top, center, inverse
+
+# Assembly
+
+### Parsing
+
+--
+
+### Encoding
+
+--
+
+# Linking
+
+### Collect object files
+
+--
+
+### Generate sections (.plt, .dynamic, ...)
+
+--
+
+### Merge sections
+
+--
+
+### Fix relocations
+
+---
+
+class: top, center, inverse
+
+# Runtime
+
+### Builtins
+
+--
+
+### libc
+
+--
+
+### Sanitizers

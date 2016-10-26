@@ -1,0 +1,36 @@
+name: inverse
+layout: true
+class: center, inverse
+---
+class: middle, center, inverse
+# Writing a complete toolchain with LLVM
+# J Core 2
+
+.llvm[![LLVM](sources/llvm.png)]
+
+##### Francis Visoiu Mistrih - <francis@lse.epita.fr>
+
+---
+
+!INCLUDE "basics.mdpp"
+
+---
+class: middle, center, inverse
+
+#### References
+
+.urls[
+https://github.com/thegameg/j2-llvm
+
+http://llvm.org/docs/WritingAnLLVMBackend.html
+
+http://www.shared-ptr.com/sh_insns.html
+]
+
+## Any questions?
+
+##### <francis@lse.epita.fr>
+
+.twitter[[@thegameg](https://twitter.com/thegameg)]
+
+.footnote[Slideshow created using [remark](http://github.com/gnab/remark).]
