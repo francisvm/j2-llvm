@@ -15,6 +15,10 @@ class: middle, center, inverse
 !INCLUDE "basics.mdpp"
 
 ---
+
+!INCLUDE "llvm.mdpp"
+
+---
 class: middle, center, inverse
 
 #### References

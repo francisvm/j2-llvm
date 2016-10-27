@@ -1,0 +1,116 @@
+class: top, center, inverse
+
+# The LLVM Compiler Infrastructure
+
+--
+
+### LLVM Core
+
+--
+
+### Clang
+
+--
+
+### LLD
+
+--
+
+### LLDB
+
+--
+
+#### libc++
+
+--
+
+#### compiler-rt
+
+---
+class: top, center, inverse
+
+## Clang
+
+Target informations:
+
+```center
+Pointer width, pointer align, size_t / ptrdirr_t types, endianness, etc.
+```
+
+--
+
+CPP defines:
+
+```center
+__TARGET__, __ELF_, __APPLE__, __x86__, etc.
+```
+
+--
+
+`ld.so` / ELF:
+
+```center
+loader, ELF32 / ELF64, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLVM Core
+
+#### Registers:
+
+```center
+registers, callee saved, caller saved, fp, sp, reserved, etc.
+```
+
+--
+
+#### Instructions:
+
+```center
+opcode, encoding, in / out regs, IR pattern, string, isBranch, sideEffects, etc.
+```
+
+--
+
+#### Calling conventions:
+
+```center
+argument passing, result value, stack alignment, argument types, etc.
+```
+
+--
+
+#### Lowering / legalization:
+
+```center
+legal types, legal instructions, stack / spill / adjust, etc.
+```
+
+--
+
+#### Relocations:
+
+```center
+symbols, relocation generation, ELF definitions, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLD
+
+#### ELF:
+
+```center
+ELF arch, target info, etc.
+```
+
+--
+
+#### Relocations:
+
+```center
+relocation type, position independent, relocation type, relocation name, etc.
+```
