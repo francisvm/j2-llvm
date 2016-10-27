@@ -1,0 +1,42 @@
+class: top, center, inverse
+
+# J-Core
+
+--
+
+### ISA
+
+--
+
+### Open source
+
+--
+
+### Hitachi SuperH - Sega Saturn
+
+--
+
+### VHDL implementation
+
+--
+
+### Different models: SH2 <-> J2, SH3 <-> J3, etc.
+
+---
+class: top, center, inverse
+
+# J2
+
+### 5-stage RISC
+
+--
+
+### 16-bit instructions
+
+--
+
+### 32-bit registers
+
+--
+
+### No MMU
