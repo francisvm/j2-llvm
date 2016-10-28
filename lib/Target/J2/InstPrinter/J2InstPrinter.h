@@ -34,6 +34,8 @@ public:
 private:
   void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   bool printAliasInstr(const MCInst *MI, raw_ostream &O);
+  void printMemOperand(const MCInst *MI, int OpNo, raw_ostream &O,
+                       const char *Modifier = nullptr);
 };
 
 } // end namespace llvm
