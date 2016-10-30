@@ -4,23 +4,21 @@ class: top, center, inverse
 
 --
 
-### ISA
-
---
-
-### Open source
+### SH2 ISA
 
 --
 
 ### Hitachi SuperH - Sega Saturn
 
+### Different models: SH2 <-> J2, SH3 <-> J3, etc.
+
+### ARM Thumb's inspiration
+
 --
+
+### Open source
 
 ### VHDL implementation
-
---
-
-### Different models: SH2 <-> J2, SH3 <-> J3, etc.
 
 ---
 class: top, center, inverse
@@ -33,10 +31,12 @@ class: top, center, inverse
 
 ### 16-bit instructions
 
+#### 133 instructions
+
 --
 
 ### 32-bit registers
 
---
+#### 16 general purpose registers
 
-### No MMU
+#### 1 64-bit register

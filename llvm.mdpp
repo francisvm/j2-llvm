@@ -27,6 +27,13 @@ class: top, center, inverse
 #### compiler-rt
 
 ---
+class: middle, center, inverse
+
+# Let's add our target!
+
+#### Clang - LLVM -> LLD
+
+---
 class: top, center, inverse
 
 ## Clang
@@ -82,18 +89,37 @@ argument passing, result value, stack alignment, argument types, etc.
 
 --
 
-#### Lowering / legalization:
-
-```center
-legal types, legal instructions, stack / spill / adjust, etc.
-```
-
---
-
 #### Relocations:
 
 ```center
 symbols, relocation generation, ELF definitions, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLVM Core
+
+#### Lowering:
+
+```center
+expand instructions, copy arguments to registers, stack management, etc.
+```
+
+--
+
+#### Legalization:
+
+```center
+legal types, legal instructions, expand illegal instructions etc.
+```
+
+--
+
+#### Target-specific passes:
+
+```center
+compute delay slots, optimize addressing mode, etc.
 ```
 
 ---
@@ -112,5 +138,5 @@ ELF arch, target info, etc.
 #### Relocations:
 
 ```center
-relocation type, position independent, relocation type, relocation name, etc.
+relocation type, position independent, relocation action, relocation name, etc.
 ```

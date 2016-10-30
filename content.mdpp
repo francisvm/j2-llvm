@@ -3,8 +3,8 @@ layout: true
 class: center, inverse
 ---
 class: middle, center, inverse
-# Writing a complete toolchain with LLVM
-# J Core 2
+# Write yourself a fully functional toolchain using
+# LLVM
 
 .llvm[![LLVM](sources/llvm.png)]
 

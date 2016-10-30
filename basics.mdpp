@@ -1,3 +1,17 @@
+class: middle, center, inverse
+
+# LLVM
+
+#### Collection of libraries
+
+#### Releases libraries
+
+#### Expose APIs to every stage of the compiler
+
+#### Rarely care about backward compatibility
+
+---
+
 class: top, center, inverse
 
 # Toolchain
