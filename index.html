@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>LLVM / Clang</title>
+    <title>Write yourself a toolchain using LLVM</title>
     <style>
       @import url(https://fonts.googleapis.com/css?family=Source+Code+Pro);
       @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono);
@@ -114,10 +114,6 @@
         margin: 0 auto;
         max-width: 53%;
       }
-      .objdump {
-        margin: 0 auto;
-        max-width: 84%;
-      }
       .asmprinter {
         margin: 0 auto;
         max-width: 80%;
@@ -146,8 +142,7 @@ layout: true
 class: center, inverse
 ---
 class: middle, center, inverse
-# Write yourself a fully functional toolchain using
-# LLVM
+# Write yourself a toolchain using LLVM
 
 .llvm[![LLVM](sources/llvm.png)]
 
@@ -549,7 +544,7 @@ add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm11
 ```
 
 ```tablegen
-
+let                 ,                            ,           in {
   def ADDrr :    <   ,    , (outs         ), (ins                  ),
                   "             ",
                   [ (                                     ) ]>;
@@ -720,8 +715,6 @@ class: top, center, inverse
 
 # Code generation
 
---
-
 ### Calling convention lowering
 
 ```tablegen
@@ -750,16 +743,18 @@ class: top, center, inverse
 
 --
 
+class: top, center, inverse
+
 ##### Prologue / Epilogue
 
 ```asm
-mov.l r14, @r15				; push $fp
+mov.l r14, @r15			 ; push $fp
 mov r15, r14				; $sp = $fp
 add #-8, r15				; $sp -= 8
 [...]
 mov r14, r15				; $fp = $sp
-mov.l @14, r14				; pop $fp
-rts					; return
+mov.l @14, r14			  ; pop $fp
+rts						 ; return
 ```
 
 ##### Callee save / regalloc spilling
@@ -774,17 +769,85 @@ class: top, center, inverse
 
 # Code generation
 
-### Symbols
-
-##### Used in the AsmPrinter
-
-##### Export if needed in object streamer
-
---
-
 ### Relocations
 
 #### Generate relocations for unknown symbols
+
+```tablegen
+def BSR : FD12<0xB, (outs), (ins j2CallTarget:$target),
+               "bsr $target",
+               [ (call tglobaladdr:$target) ]>;
+```
+
+--
+
+##### Add fixups to the final object file
+
+```c++
+unsigned J2MCCodeEmitter::getMachineOpValue(...) {
+  [...]
+  auto Fixup = MCFixup::create(0, MO.getExpr(), J2::fixup_J2_BSR, MI.getLoc());
+  Fixups.push_back();
+}
+```
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Relocations
+
+#### Fixups are lowered to ELF relocations
+
+```c
+int foo(int);
+int bar(int a) { return foo(a); }
+```
+
+```shell
+$ clang -target j2-unknown-linux-gnu -fintegrated-as -nostdlib call.c -c -S
+$ cat call.s
+```
+```asm
+bar:
+				  mov.l	r14, @r15
+				  [...]
+				  bsr	  foo
+```
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Relocations
+
+#### Fixups are lowered to ELF relocations
+
+```c
+int foo(int);
+int bar(int a) { return foo(a); }
+```
+
+```shell
+$ clang -target j2-unknown-linux-gnu -fintegrated-as -nostdlib call.c -c
+$ llvm-objdump -d call.o
+```
+```asm
+bar:
+0x0:	e2 2f 	mov.l	r14, @r15
+[...]
+0xc:	00 b0 	bsr	  #0
+```
+
+```
+$ llvm-objdump -t -r call.o
+RELOCATION RECORDS FOR [.rela.text]:
+0000000c R_J2_BSR Unknown
+```
 
 ---
 class: middle, center, inverse
