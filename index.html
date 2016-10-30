@@ -146,8 +146,8 @@ layout: true
 class: center, inverse
 ---
 class: middle, center, inverse
-# Writing a complete toolchain with LLVM
-# J Core 2
+# Write yourself a fully functional toolchain using
+# LLVM
 
 .llvm[![LLVM](sources/llvm.png)]
 
@@ -155,13 +155,23 @@ class: middle, center, inverse
 
 ---
 
+class: middle, center, inverse
+
+# LLVM
+
+#### Collection of libraries
+
+#### Releases libraries
+
+#### Expose APIs to every stage of the compiler
+
+#### Rarely care about backward compatibility
+
+---
+
 class: top, center, inverse
 
 # Toolchain
-
-### Preprocessing - cpp
-
---
 
 ### Compilation - cc1
 
@@ -172,6 +182,10 @@ class: top, center, inverse
 --
 
 ### Linking - ld
+
+--
+
+### Runtime - builtins / libc
 
 ---
 
@@ -195,15 +209,11 @@ class: top, center, inverse
 
 --
 
-### IR Optimizations
+### IR optimizations
 
 --
 
 ### Instruction selection
-
---
-
-### Dataflow analysis
 
 --
 
@@ -221,7 +231,7 @@ class: top, center, inverse
 
 ### Encoding
 
----
+--
 
 # Linking
 
@@ -229,7 +239,7 @@ class: top, center, inverse
 
 --
 
-### Generate sections
+### Generate sections (.plt, .dynamic, ...)
 
 --
 
@@ -238,6 +248,543 @@ class: top, center, inverse
 --
 
 ### Fix relocations
+
+---
+
+class: top, center, inverse
+
+# Runtime
+
+### Builtins
+
+--
+
+### libc
+
+--
+
+### Sanitizers
+
+---
+
+class: top, center, inverse
+
+# The LLVM Compiler Infrastructure
+
+--
+
+### LLVM Core
+
+--
+
+### Clang
+
+--
+
+### LLD
+
+--
+
+### LLDB
+
+--
+
+#### libc++
+
+--
+
+#### compiler-rt
+
+---
+class: middle, center, inverse
+
+# Let's add our target!
+
+#### Clang - LLVM -> LLD
+
+---
+class: top, center, inverse
+
+## Clang
+
+Target informations:
+
+```center
+Pointer width, pointer align, size_t / ptrdirr_t types, endianness, etc.
+```
+
+--
+
+CPP defines:
+
+```center
+__TARGET__, __ELF_, __APPLE__, __x86__, etc.
+```
+
+--
+
+`ld.so` / ELF:
+
+```center
+loader, ELF32 / ELF64, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLVM Core
+
+#### Registers:
+
+```center
+registers, callee saved, caller saved, fp, sp, reserved, etc.
+```
+
+--
+
+#### Instructions:
+
+```center
+opcode, encoding, in / out regs, IR pattern, string, isBranch, sideEffects, etc.
+```
+
+--
+
+#### Calling conventions:
+
+```center
+argument passing, result value, stack alignment, argument types, etc.
+```
+
+--
+
+#### Relocations:
+
+```center
+symbols, relocation generation, ELF definitions, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLVM Core
+
+#### Lowering:
+
+```center
+expand instructions, copy arguments to registers, stack management, etc.
+```
+
+--
+
+#### Legalization:
+
+```center
+legal types, legal instructions, expand illegal instructions etc.
+```
+
+--
+
+#### Target-specific passes:
+
+```center
+compute delay slots, optimize addressing mode, etc.
+```
+
+---
+class: top, center, inverse
+
+## LLD
+
+#### ELF:
+
+```center
+ELF arch, target info, etc.
+```
+
+--
+
+#### Relocations:
+
+```center
+relocation type, position independent, relocation action, relocation name, etc.
+```
+
+---
+
+class: top, center, inverse
+
+# J-Core
+
+--
+
+### SH2 ISA
+
+--
+
+### Hitachi SuperH - Sega Saturn
+
+### Different models: SH2 <-> J2, SH3 <-> J3, etc.
+
+### ARM Thumb's inspiration
+
+--
+
+### Open source
+
+### VHDL implementation
+
+---
+class: top, center, inverse
+
+# J2
+
+### 5-stage RISC
+
+--
+
+### 16-bit instructions
+
+#### 133 instructions
+
+--
+
+### 32-bit registers
+
+#### 16 general purpose registers
+
+#### 1 64-bit register
+
+---
+
+class: middle, center, inverse
+
+# How to start
+
+#### Add the target to LLVM / Clang / LLD
+
+##### Unlike GCC, you don't need to build a cross-compiler
+
+##### Describe your target and the subtargets
+
+---
+
+class: middle, center, inverse
+
+# Registers
+
+```tablegen
+def R0 : J2Reg<0, "r0">, DwarfRegNum<[ 0 ]>;
+
+[...]
+
+def R15 : J2Reg<15, "r15", [ "sp" ]>, DwarfRegNum<[ 15 ]>;
+```
+
+Register classes
+
+```tablegen
+def GPR : RegisterClass<"J2", [ i32 ], 32, (add R0, [...], R15)>;
+```
+
+Reserved registers
+
+---
+
+class: middle, center, inverse
+
+# Instructions
+
+## Instruction formats
+
+```center
+15                          0                             
+----------------------------- x: opcode                   
+|      |      |      |      | n : src                     
+| xxxx | nnnn | mmmm | xxxx |                             
+|      |      |      |      | m : dst                     
+----------------------------- x: instruction-specific data
+```
+
+--
+
+```tablegen
+class FNM<bits<4> op, bits<4> data, dag outs, dag ins, string asmstr,
+          list<dag> pattern> {
+
+    bits<4> dst;
+    bits<4> src;
+
+    let Inst{15 - 12} = op;
+    let Inst{11 - 8} = dst;
+    let Inst{7 - 4} = src;
+    let Inst{3 - 0} = data;
+}
+```
+
+---
+
+class: middle, center, inverse
+
+## my_first_instruction
+
+```center
+add r0, r14
+```
+
+--
+
+#### RTFM
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+
+  def ADDrr :    <   ,    , (outs         ), (ins                  ),
+                  "             ",
+                  [ (                                     ) ]>;
+```
+
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+let                 , Constraints = "$rnd = $rns",           in {
+  def ADDrr :    <   ,    , (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                  "             ",
+                  [ (                                     ) ]>;
+```
+
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+let                 , Constraints = "$rnd = $rns",           in {
+  def ADDrr :    <   ,    , (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                  "add $rm, $rnd",
+                  [ (                                     ) ]>;
+```
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+let                 , Constraints = "$rnd = $rns",           in {
+  def ADDrr :    <   ,    , (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                  "add $rm, $rnd",
+                  [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ]>;
+```
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+let                 , Constraints = "$rnd = $rns",           in {
+  def ADDrr : FNM<0x3, 0xC, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                  "add $rm, $rnd",
+                  [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ]>;
+```
+---
+
+class: middle, center, inverse
+
+```center
+add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm1100
+```
+
+```tablegen
+let isCommutable = 1, Constraints = "$rnd = $rns", isAdd = 1 in {
+  def ADDrr : FNM<0x3, 0xC, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                  "add $rm, $rnd",
+                  [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ]>;
+```
+
+---
+
+class: middle, center, inverse
+
+### What is actually generated
+
+##### J2GenAsmMatcher.inc - AsmParser
+
+```c++
+static const MatchEntry MatchTable0[] = {
+  { 0 /*add*/, J2::ADDrr, Convert_Reg1_1_Reg1_0_Tie0, 0, { MCK_GPR, MCK_GPR }, },
+```
+
+##### J2GenAsmWriter.inc - AsmPrinter
+
+```c++
+case 2:
+  // ADDrr
+  printOperand(MI, 1, O);
+  O << ", ";
+  printOperand(MI, 0, O);
+  return;
+  break;
+```
+
+---
+
+class: middle, center, inverse
+
+### What is actually generated
+
+##### J2GenDisassemblerTables.inc - Disassembler
+
+```c++
+static const uint8_t DecoderTable16[] = {
+  /* 221 */     MCD::OPC_Decode, 83, 4, // Opcode: ADDrr
+```
+
+##### J2GenMCCodeEmitter.inc - Assembler
+
+```c++
+case J2::ADDrr:
+  // op: src
+  op = getMachineOpValue(MI, MI.getOperand(0), Fixups, STI);
+  Value |= (op & UINT64_C(15)) << 4;
+  // op: dst
+  op = getMachineOpValue(MI, MI.getOperand(1), Fixups, STI);
+  Value |= (op & UINT64_C(15)) << 8;
+  break;
+```
+
+---
+
+class: middle, center, inverse
+
+### What is actually generated
+
+##### J2GenDAGISel.inc - Instruction selection
+
+```c++
+static const unsigned char MatcherTable[] = {
+/*670*/         OPC_MorphNodeTo1, TARGET_VAL(J2::ADDrr), 0,
+                    MVT::i32, 2/*#Ops*/, 0, 1,
+                // Src: (add:i32 i32:i32:$rm, i32:i32:$rns) - Complexity = 3
+                // Dst: (ADDrr:i32 i32:i32:$rm, i32:i32:$rns)
+/*678*/       0, /*End of Scope*/
+```
+
+##### J2GenInstrInfo.inc - Instruction information
+
+```c++
+namespace J2 {
+  enum {
+    ANDrr = 83,
+```
+
+```c++
+  { 83, 3,  1,  2,  0,  0|(1ULL<<MCID::Add)|(1ULL<<MCID::Commutable), 0x0ULL,
+    nullptr, nullptr, OperandInfo22, -1 ,nullptr },  // Inst #83 = ADDrr
+```
+
+---
+
+class: middle, center, inverse
+
+# Code generation
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+--
+
+### Calling convention lowering
+
+```tablegen
+def CC_J2 : CallingConv<[
+  CCIfType<[ i1, i8, i16 ], CCPromoteToType<i32>>,
+  CCIfType<[ i32 ], CCAssignToReg<[ R4, R5, R6, R7 ]>>,
+  CCIfType<[ i32 ], CCAssignToStack<4, 4>> // 4 bytes size, 4 bytes alignment.
++]>;
+```
+
+--
+
+#### Ask calling convention what to do
+
+#### Generate target-specific instructions
+
+#### J2-specific: move arguments to registers
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Frame lowering
+
+--
+
+##### Prologue / Epilogue
+
+```asm
+mov.l r14, @r15				; push $fp
+mov r15, r14				; $sp = $fp
+add #-8, r15				; $sp -= 8
+[...]
+mov r14, r15				; $fp = $sp
+mov.l @14, r14				; pop $fp
+rts					; return
+```
+
+##### Callee save / regalloc spilling
+
+* storeRegToStackSlot
+
+* loadRegFromStackSlot
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Symbols
+
+##### Used in the AsmPrinter
+
+##### Export if needed in object streamer
+
+--
+
+### Relocations
+
+#### Generate relocations for unknown symbols
 
 ---
 class: middle, center, inverse
