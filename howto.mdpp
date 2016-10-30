@@ -67,6 +67,34 @@ class FNM<bits<4> op, bits<4> data, dag outs, dag ins, string asmstr,
 
 class: middle, center, inverse
 
+## Tablegen
+
+#### Why ?
+
+--
+
+##### Avoid duplication
+
+--
+
+##### Avoid C++ metaprogramming
+
+--
+
+##### Easily modulable
+
+--
+
+##### Focus on the description of the target
+
+--
+
+##### Performance
+
+---
+
+class: middle, center, inverse
+
 ## my_first_instruction
 
 ```center
