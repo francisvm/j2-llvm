@@ -90,7 +90,7 @@ add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm11
 ```
 
 ```tablegen
-
+let                 ,                            ,           in {
   def ADDrr :    <   ,    , (outs         ), (ins                  ),
                   "             ",
                   [ (                                     ) ]>;
@@ -261,8 +261,6 @@ class: top, center, inverse
 
 # Code generation
 
---
-
 ### Calling convention lowering
 
 ```tablegen
@@ -291,16 +289,18 @@ class: top, center, inverse
 
 --
 
+class: top, center, inverse
+
 ##### Prologue / Epilogue
 
 ```asm
-mov.l r14, @r15				; push $fp
+mov.l r14, @r15			 ; push $fp
 mov r15, r14				; $sp = $fp
 add #-8, r15				; $sp -= 8
 [...]
 mov r14, r15				; $fp = $sp
-mov.l @14, r14				; pop $fp
-rts					; return
+mov.l @14, r14			  ; pop $fp
+rts						 ; return
 ```
 
 ##### Callee save / regalloc spilling

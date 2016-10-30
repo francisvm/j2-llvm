@@ -114,10 +114,6 @@
         margin: 0 auto;
         max-width: 53%;
       }
-      .objdump {
-        margin: 0 auto;
-        max-width: 84%;
-      }
       .asmprinter {
         margin: 0 auto;
         max-width: 80%;
