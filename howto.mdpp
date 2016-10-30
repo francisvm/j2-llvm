@@ -313,6 +313,65 @@ class: top, center, inverse
 
 # Code generation
 
+### Legalization
+
+--
+
+```llvm
+%bool = cmp slt r1, r2
+```
+
+```asm
+cmp/ge r2, r1
+```
+
+--
+
+```llvm
+%sh = shl r1, 20
+```
+
+```asm
+shll16 r1
+shll2 r1
+shll2 r1
+```
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Instruction Selection
+
+##### Addressing modes
+
+--
+
+```c
+int tab[30];
+tab[2];
+```
+
+--
+
+J2
+
+```asm
+                mov.l @Rm, Rn           - (Rm) -> Rn
+                mov.l @(disp, Rm), Rn   - (Rm + disp * 4) -> Rn
+                mov.l @(R0, Rm), Rn     - (R0 + Rm) -> Rn
+```
+
+Select the correct addressing mode.
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
 ### Frame lowering
 
 --
