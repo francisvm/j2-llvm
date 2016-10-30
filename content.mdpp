@@ -23,6 +23,10 @@ class: middle, center, inverse
 !INCLUDE "j2.mdpp"
 
 ---
+
+!INCLUDE "howto.mdpp"
+
+---
 class: middle, center, inverse
 
 #### References
