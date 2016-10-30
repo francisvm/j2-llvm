@@ -1,0 +1,13 @@
+language: generic
+
+script:
+  # The only depencency: MarkdownPP.
+  - pip install MarkdownPP --user
+  # Build.
+  - make
+  # Deploy if needed.
+  - bash ./deploy.sh
+
+env:
+  global:
+    - ENCRYPTION_LABEL: "e590415c2d55"
