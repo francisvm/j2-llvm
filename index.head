@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>LLVM / Clang</title>
+    <title>Write yourself a toolchain using LLVM</title>
     <style>
       @import url(https://fonts.googleapis.com/css?family=Source+Code+Pro);
       @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono);

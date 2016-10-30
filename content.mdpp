@@ -3,8 +3,7 @@ layout: true
 class: center, inverse
 ---
 class: middle, center, inverse
-# Write yourself a fully functional toolchain using
-# LLVM
+# Write yourself a toolchain using LLVM
 
 .llvm[![LLVM](sources/llvm.png)]
 
