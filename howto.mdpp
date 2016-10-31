@@ -34,6 +34,36 @@ Reserved registers
 
 class: middle, center, inverse
 
+## Tablegen
+
+#### Why ?
+
+--
+
+##### Avoid duplication
+
+--
+
+##### Avoid C++ metaprogramming
+
+--
+
+##### Easily modulable
+
+--
+
+##### Focus on the description of the target
+
+--
+
+##### Performance
+
+
+
+---
+
+class: middle, center, inverse
+
 # Instructions
 
 ## Instruction formats
@@ -62,34 +92,6 @@ class FNM<bits<4> op, bits<4> data, dag outs, dag ins, string asmstr,
     let Inst{3 - 0} = data;
 }
 ```
-
----
-
-class: middle, center, inverse
-
-## Tablegen
-
-#### Why ?
-
---
-
-##### Avoid duplication
-
---
-
-##### Avoid C++ metaprogramming
-
---
-
-##### Easily modulable
-
---
-
-##### Focus on the description of the target
-
---
-
-##### Performance
 
 ---
 
@@ -351,7 +353,7 @@ class: top, center, inverse
 
 ```c
 int tab[30];
-tab[2];
+int a = tab[2];
 ```
 
 --
@@ -359,12 +361,16 @@ tab[2];
 J2
 
 ```asm
-                mov.l @Rm, Rn           - (Rm) -> Rn
-                mov.l @(disp, Rm), Rn   - (Rm + disp * 4) -> Rn
-                mov.l @(R0, Rm), Rn     - (R0 + Rm) -> Rn
+mov.l @Rm, Rn                           -                   (Rm) -> Rn
+mov.l @(disp, Rm), Rn                   -                   (Rm + disp * 4) -> Rn
+mov.l @(R0, Rm), Rn                     -                   (R0 + Rm) -> Rn
 ```
 
 Select the correct addressing mode.
+
+```asm
+mov.l @(2, r14), r1
+```
 
 ---
 
@@ -417,11 +423,8 @@ def BSR : FD12<0xB, (outs), (ins j2CallTarget:$target),
 ##### Add fixups to the final object file
 
 ```c++
-unsigned J2MCCodeEmitter::getMachineOpValue(...) {
-  [...]
-  auto Fixup = MCFixup::create(0, MO.getExpr(), J2::fixup_J2_BSR, MI.getLoc());
-  Fixups.push_back();
-}
+Offset = 0;
+MCFixup::create(Offset, MO.getExpr(), J2::fixup_J2_BSR, MI.getLoc());
 ```
 
 ---
@@ -481,3 +484,5 @@ $ llvm-objdump -t -r call.o
 RELOCATION RECORDS FOR [.rela.text]:
 0000000c R_J2_BSR Unknown
 ```
+
+

@@ -34,6 +34,20 @@ class: middle, center, inverse
 #### Clang - LLVM -> LLD
 
 ---
+
+class: middle, center, inverse
+
+# Clang
+
+#### Clang generates LLVM IR from C / C++ / Objective-C
+
+#### Lowers front end constructions to lower-level ones
+
+#### Intermediate representations are supposed to be target-independent
+
+#### LLVM IR is not, because source languages depend on it
+
+---
 class: top, center, inverse
 
 ## Clang
@@ -126,6 +140,12 @@ compute delay slots, optimize addressing mode, etc.
 class: top, center, inverse
 
 ## LLD
+
+### We generate relocations in the back end
+
+### We need to fix them in the linker
+
+--
 
 #### ELF:
 
