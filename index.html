@@ -849,22 +849,88 @@ class: top, center, inverse
 ```llvm
 %bool = cmp slt r1, r2
 ```
-
 ```asm
 cmp/ge r2, r1
 ```
 
 --
-
+|
 ```llvm
 %sh = shl r1, 20
 ```
-
 ```asm
 shll16 r1
 shll2 r1
 shll2 r1
 ```
+
+--
+
+```c++
+setOperationAction(SHL, i32, Custom);
+```
+
+Then lower manually.
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Legalization
+
+Legal
+
+* Supported by the target.
+
+--
+
+Libcall
+
+* Call the runtime.
+
+--
+
+Promote
+
+* Promote the type to a larger type.
+
+--
+
+Expand
+
+* Expand to other opereations, if possible.
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Instruction Selection
+
+##### IR -> DAG
+
+#### Convert IR to a graph (DAG)
+
+--
+
+##### BB -> MBB
+
+#### Select one basic block at a time
+
+--
+
+##### Select()
+
+#### Generic algorithm, based on the generated files from every target
+
+--
+
+##### Custom
+
+#### But some manual work needs to be done
 
 ---
 
@@ -1013,6 +1079,79 @@ RELOCATION RECORDS FOR [.rela.text]:
 ```
 
 
+
+---
+
+class: middle, center, inverse
+
+# LLD
+
+## ELF, COFF, Mach-O
+
+### New design
+
+### C++
+
+### lld == 13k lines ; gold == 146k lines
+
+### 1.2x to 2x faster than gold
+
+---
+class: middle, center, inverse
+
+# What we don't need to do
+
+### Generate sections
+
+### Merge sections
+
+### Generate output file
+
+### Everything except relocations
+
+---
+class: top, center, inverse
+
+# LLD
+
+#### Handle ELF `e_machine`
+
+--
+
+### Relocations - the other side
+
+```c++
+void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const;
+```
+
+* Machine code in `Loc`
+
+* Relocation type in `Type`: R_J2_BSR, R_J2_BRA, etc.
+
+* The value to be written in `Val`: 0x2, 0x403430, etc.
+
+---
+class: middle, center, inverse
+
+# Relocations
+## the other side
+
+### J2 calls
+
+```asm
+bsr label
+```
+```
+PC + 4 -> PR
+disp * 2 + PC + 4 -> PC (Delayed branch)
+```
+```
+1011dddddddddddd
+```
+
+* J2 calls are PC-relative
+
+* +/- 4096
 
 ---
 class: middle, center, inverse
