@@ -1,0 +1,70 @@
+class: middle, center, inverse
+
+# LLD
+
+## ELF, COFF, Mach-O
+
+### New design
+
+### C++
+
+### lld == 13k lines ; gold == 146k lines
+
+### 1.2x to 2x faster than gold
+
+---
+class: middle, center, inverse
+
+# What we don't need to do
+
+### Generate sections
+
+### Merge sections
+
+### Generate output file
+
+### Everything except relocations
+
+---
+class: top, center, inverse
+
+# LLD
+
+#### Handle ELF `e_machine`
+
+--
+
+### Relocations - the other side
+
+```c++
+void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const;
+```
+
+* Machine code in `Loc`
+
+* Relocation type in `Type`: R_J2_BSR, R_J2_BRA, etc.
+
+* The value to be written in `Val`: 0x2, 0x403430, etc.
+
+---
+class: middle, center, inverse
+
+# Relocations
+## the other side
+
+### J2 calls
+
+```asm
+bsr label
+```
+```
+PC + 4 -> PR
+disp * 2 + PC + 4 -> PC (Delayed branch)
+```
+```
+1011dddddddddddd
+```
+
+* J2 calls are PC-relative
+
+* +/- 4096
