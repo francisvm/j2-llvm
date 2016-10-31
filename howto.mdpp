@@ -322,22 +322,88 @@ class: top, center, inverse
 ```llvm
 %bool = cmp slt r1, r2
 ```
-
 ```asm
 cmp/ge r2, r1
 ```
 
 --
-
+|
 ```llvm
 %sh = shl r1, 20
 ```
-
 ```asm
 shll16 r1
 shll2 r1
 shll2 r1
 ```
+
+--
+
+```c++
+setOperationAction(SHL, i32, Custom);
+```
+
+Then lower manually.
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Legalization
+
+Legal
+
+* Supported by the target.
+
+--
+
+Libcall
+
+* Call the runtime.
+
+--
+
+Promote
+
+* Promote the type to a larger type.
+
+--
+
+Expand
+
+* Expand to other opereations, if possible.
+
+---
+
+class: top, center, inverse
+
+# Code generation
+
+### Instruction Selection
+
+##### IR -> DAG
+
+#### Convert IR to a graph (DAG)
+
+--
+
+##### BB -> MBB
+
+#### Select one basic block at a time
+
+--
+
+##### Select()
+
+#### Generic algorithm, based on the generated files from every target
+
+--
+
+##### Custom
+
+#### But some manual work needs to be done
 
 ---
 
