@@ -172,15 +172,10 @@ int bar(int a)
 0x100:	e2 2f 	mov.l	r14, @r15
 0x102:	e3 6f 	mov	  r15, r14
 0x104:	f0 7f 	add	  #-16, r15
-0x106:	03 6e 	mov	  r14, r0
-0x108:	42 20 	mov.l	r4, @r0
-0x10a:	42 2e 	mov.l	r4, @r14
-0x10c:	fd bf 	bsr	  #-3
+[...]
+0x10c:	0b 40 	jsr	  @r0
 0x10e:	09 00 	nop
-0x110:	42 6e 	mov.l	@r14, r4
-0x112:	42 2e 	mov.l	r4, @r14
-0x114:	f3 6e 	mov	  r14, r15
-0x116:	e2 6f 	mov.l	@r15, r14
+[...]
 0x118:	0b 00 	rts
 0x11a:	09 00 	nop
 ```
@@ -348,7 +343,7 @@ class: middle, center, inverse
 
 # Let's add our target!
 
-#### Clang - LLVM -> LLD
+#### Clang -> LLVM -> LLD
 
 ---
 
@@ -484,19 +479,13 @@ class: top, center, inverse
 
 # J-Core
 
---
-
 ### SH2 ISA
-
---
 
 ### Hitachi SuperH - Sega Saturn
 
 ### Different models: SH2 <-> J2, SH3 <-> J3, etc.
 
 ### ARM Thumb's inspiration
-
---
 
 ### Open source
 
@@ -1022,66 +1011,6 @@ MCFixup::create(Offset, MO.getExpr(), J2::fixup_J2_BSR, MI.getLoc());
 
 ---
 
-class: top, center, inverse
-
-# Code generation
-
-### Relocations
-
-#### Fixups are lowered to ELF relocations
-
-```c
-int foo(int);
-int bar(int a) { return foo(a); }
-```
-
-```shell
-$ clang -target j2-unknown-linux-gnu -fintegrated-as -nostdlib call.c -c -S
-$ cat call.s
-```
-```asm
-bar:
-				  mov.l	r14, @r15
-				  [...]
-				  bsr	  foo
-```
-
----
-
-class: top, center, inverse
-
-# Code generation
-
-### Relocations
-
-#### Fixups are lowered to ELF relocations
-
-```c
-int foo(int);
-int bar(int a) { return foo(a); }
-```
-
-```shell
-$ clang -target j2-unknown-linux-gnu -fintegrated-as -nostdlib call.c -c
-$ llvm-objdump -d call.o
-```
-```asm
-bar:
-0x0:	e2 2f 	mov.l	r14, @r15
-[...]
-0xc:	00 b0 	bsr	  #0
-```
-
-```
-$ llvm-objdump -t -r call.o
-RELOCATION RECORDS FOR [.rela.text]:
-0000000c R_J2_BSR Unknown
-```
-
-
-
----
-
 class: middle, center, inverse
 
 # LLD
@@ -1114,11 +1043,9 @@ class: top, center, inverse
 
 # LLD
 
-#### Handle ELF `e_machine`
+### Relocations - the other side
 
 --
-
-### Relocations - the other side
 
 ```c++
 void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const;
@@ -1152,6 +1079,109 @@ disp * 2 + PC + 4 -> PC (Delayed branch)
 * J2 calls are PC-relative
 
 * +/- 4096
+
+---
+class: middle, center, inverse
+
+# Relocations
+## the other side
+
+### J2 calls
+
+```asm
+jsr @Rm
+```
+```
+PC + 4 -> PR
+Rm -> PC (Delayed branch)
+```
+```
+0100mmmm00001011
+```
+
+* Indirect call
+
+* 32bit absolute address
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### 4 x immediate mov
+
+Jump to 0x134:
+
+```objdump
+*10e:	00 e0 	mov	  #0, r0                ; 0b0
+110:	18 40 	shll8	r0                    ; 0b0
+*112:	00 cb 	or	   #0, r0                ; 0b0
+114:	18 40 	shll8	r0                    ; 0b0
+*116:	01 cb 	or	   #1, r0                ; 0b1
+118:	18 40 	shll8	r0                    ; 0b100000000
+*11a:	34 cb 	or	   #52, r0A              ; 0b100110100
+[...]
+122:	0b 40 	jsr	  @r0
+124:	09 00 	nop
+```
+
+* 4 x 1B relocations
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### PC-relative mov
+
+```asm
+mov.l @(disp,PC),Rn
+```
+```
+(disp * 4 + (PC & 0xFFFFFFFC) + 4) -> Rn
+```
+```
+1101nnnndddddddd
+```
+
+* PC-relative load
+
+* Can use this + JSR to call an absolute 32-bit address
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### 1 x immediate mov
+
+Jump to 0x134:
+
+```objdump
+10c:	05 d0	mov.l @(5, PC), r0
+*10e:	0b 41	jsr	@r0
+110:	09 00	nop
+[...]
+11c:	0b 00	rts
+11e:	09 00	nop
+120:	34 01	.data.l 0x134
+```
+
+* Add data at the end of the function
+
+* Load PC-relative data into register
+
+---
+
+class: middle, center, inverse
+
+# TODO
+
+### tests, more tests, even more tests, qemu, fpga, exception handling, selectcc, plt, got, default linker script, clang intrinsics, undef, debug info, mul, div, not, 64bit op, fp, vectorization, frame pointer elimination, subtargets, delay slot filling, global variables, constant pools, inline asm, atomics, alloca, byval, varargs, jit, tls, relaxation, scheduling, branch folding, runtime, loader, .data, .bss, tail call, etc.
+
 
 ---
 class: middle, center, inverse
