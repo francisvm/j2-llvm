@@ -66,3 +66,97 @@ disp * 2 + PC + 4 -> PC (Delayed branch)
 * J2 calls are PC-relative
 
 * +/- 4096
+
+---
+class: middle, center, inverse
+
+# Relocations
+## the other side
+
+### J2 calls
+
+```asm
+jsr @Rm
+```
+```
+PC + 4 -> PR
+Rm -> PC (Delayed branch)
+```
+```
+0100mmmm00001011
+```
+
+* Indirect call
+
+* 32bit absolute address
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### 4 x immediate mov
+
+Jump to 0x134:
+
+```objdump
+*10e:	00 e0 	mov	  #0, r0                ; 0b0
+110:	18 40 	shll8	r0                    ; 0b0
+*112:	00 cb 	or	   #0, r0                ; 0b0
+114:	18 40 	shll8	r0                    ; 0b0
+*116:	01 cb 	or	   #1, r0                ; 0b1
+118:	18 40 	shll8	r0                    ; 0b100000000
+*11a:	34 cb 	or	   #52, r0A              ; 0b100110100
+[...]
+122:	0b 40 	jsr	  @r0
+124:	09 00 	nop
+```
+
+* 4 x 1B relocations
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### PC-relative mov
+
+```asm
+mov.l @(disp,PC),Rn
+```
+```
+(disp * 4 + (PC & 0xFFFFFFFC) + 4) -> Rn
+```
+```
+1101nnnndddddddd
+```
+
+* PC-relative load
+
+* Can use this + JSR to call an absolute 32-bit address
+
+---
+class: top, center, inverse
+
+# Relocations
+## the other side
+
+### 1 x immediate mov
+
+Jump to 0x134:
+
+```objdump
+10c:	05 d0	mov.l @(5, PC), r0
+*10e:	0b 41	jsr	@r0
+110:	09 00	nop
+[...]
+11c:	0b 00	rts
+11e:	09 00	nop
+120:	34 01	.data.l 0x134
+```
+
+* Add data at the end of the function
+
+* Load PC-relative data into register
