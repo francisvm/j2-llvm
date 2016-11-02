@@ -31,7 +31,7 @@ class: middle, center, inverse
 
 # Let's add our target!
 
-#### Clang - LLVM -> LLD
+#### Clang -> LLVM -> LLD
 
 ---
 

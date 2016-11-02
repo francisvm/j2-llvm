@@ -30,11 +30,9 @@ class: top, center, inverse
 
 # LLD
 
-#### Handle ELF `e_machine`
+### Relocations - the other side
 
 --
-
-### Relocations - the other side
 
 ```c++
 void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const;

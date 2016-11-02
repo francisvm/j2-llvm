@@ -20,15 +20,10 @@ int bar(int a)
 0x100:	e2 2f 	mov.l	r14, @r15
 0x102:	e3 6f 	mov	  r15, r14
 0x104:	f0 7f 	add	  #-16, r15
-0x106:	03 6e 	mov	  r14, r0
-0x108:	42 20 	mov.l	r4, @r0
-0x10a:	42 2e 	mov.l	r4, @r14
-0x10c:	fd bf 	bsr	  #-3
+[...]
+0x10c:	0b 40 	jsr	  @r0
 0x10e:	09 00 	nop
-0x110:	42 6e 	mov.l	@r14, r4
-0x112:	42 2e 	mov.l	r4, @r14
-0x114:	f3 6e 	mov	  r14, r15
-0x116:	e2 6f 	mov.l	@r15, r14
+[...]
 0x118:	0b 00 	rts
 0x11a:	09 00 	nop
 ```
