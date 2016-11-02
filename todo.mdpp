@@ -1,0 +1,5 @@
+class: middle, center, inverse
+
+# TODO
+
+### tests, more tests, even more tests, qemu, fpga, exception handling, selectcc, plt, got, default linker script, clang intrinsics, undef, debug info, mul, div, not, 64bit op, fp, vectorization, frame pointer elimination, subtargets, delay slot filling, global variables, constant pools, inline asm, atomics, alloca, byval, varargs, jit, tls, relaxation, scheduling, branch folding, runtime, loader, .data, .bss, tail call, etc.
