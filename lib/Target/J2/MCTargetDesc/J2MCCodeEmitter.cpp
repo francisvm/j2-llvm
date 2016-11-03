@@ -66,6 +66,8 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
   // MO must be an Expr.
   assert(MO.isExpr() && MO.getExpr()->getKind() == MCExpr::SymbolRef);
 
+  auto &Expr = cast<MCSymbolRefExpr>(*MO.getExpr());
+
   J2::Fixups FixupKind = J2::fixup_J2_NONE;
 
   switch (MI.getOpcode()) {
@@ -77,8 +79,30 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
     CASE(BSR);
     CASE(BRA);
     CASE(BT);
-  default:
+
+  case J2::ORri: {
+    switch (Expr.getKind()) {
+    case MCSymbolRefExpr::VK_J2_GA:
+      FixupKind = J2::fixup_J2_GA;
+      break;
+    case MCSymbolRefExpr::VK_J2_GA00:
+      FixupKind = J2::fixup_J2_GA00;
+      break;
+    case MCSymbolRefExpr::VK_J2_GA0000:
+      FixupKind = J2::fixup_J2_GA0000;
+      break;
+    case MCSymbolRefExpr::VK_J2_GA000000:
+      FixupKind = J2::fixup_J2_GA000000;
+      break;
+    default:
+      llvm_unreachable("Unknown VK.");
+    }
+    break;
+  }
+  default: {
+    llvm::outs() << MI.getOpcode() << '\n';
     llvm_unreachable("Opcode not handled.");
+  }
   }
 
   Fixups.push_back(

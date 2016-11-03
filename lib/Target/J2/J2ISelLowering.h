@@ -54,6 +54,10 @@ public:
 
   const char *getTargetNodeName(unsigned Opcode) const override;
 
+  MachineBasicBlock *
+  EmitInstrWithCustomInserter(MachineInstr &MI,
+                              MachineBasicBlock *BB) const override;
+
   SDValue LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv,
                                bool isVarArg,
                                const SmallVectorImpl<ISD::InputArg> &Ins,
@@ -74,6 +78,12 @@ public:
 
   template <enum J2ISD::NodeType Opcode>
   SDValue LowerShift(SDValue Op, SelectionDAG &DAG) const;
+
+  MachineBasicBlock *EmitMOV32irImm(MachineInstr &MI,
+                                    MachineBasicBlock *MBB) const;
+
+  MachineBasicBlock *EmitMOV32irGlobalAddress(MachineInstr &MI,
+                                              MachineBasicBlock *MBB) const;
 };
 }
 

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "J2MCInstLower.h"
+#include "MCTargetDesc/J2BaseInfo.h"
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/MC/MCInst.h"
@@ -22,7 +23,19 @@ using namespace llvm;
 
 MCOperand J2MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                             MCSymbol *Sym) const {
-  const MCExpr *Expr = MCSymbolRefExpr::create(Sym, Printer.OutContext);
+  auto Kind = [&]() -> MCSymbolRefExpr::VariantKind {
+    switch (MO.getTargetFlags()) {
+#define CASE(X) case J2II::X: return MCSymbolRefExpr::VK_J2_##X
+      CASE(GA);
+      CASE(GA00);
+      CASE(GA0000);
+      CASE(GA000000);
+#undef CASE
+    default:
+      return MCSymbolRefExpr::VK_None;
+    }
+  }();
+  const MCExpr *Expr = MCSymbolRefExpr::create(Sym, Kind, Printer.OutContext);
 
   // FIXME: Target flags ?
 

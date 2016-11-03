@@ -271,6 +271,11 @@ public:
     VK_AMDGPU_REL32_LO,      // symbol@rel32@lo
     VK_AMDGPU_REL32_HI,      // symbol@rel32@hi
 
+    VK_J2_GA,                // symbol@ga
+    VK_J2_GA00,              // symbol@ga00
+    VK_J2_GA0000,            // symbol@ga0000
+    VK_J2_GA000000,          // symbol@ga000000
+
     VK_TPREL,
     VK_DTPREL
   };

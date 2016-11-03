@@ -43,6 +43,10 @@ protected:
       FIXUP(BSR);
       FIXUP(BRA);
       FIXUP(BT);
+      FIXUP(GA);
+      FIXUP(GA00);
+      FIXUP(GA0000);
+      FIXUP(GA000000);
     default:
       llvm_unreachable("Unkown fixup!");
     }
@@ -63,6 +67,10 @@ const MCFixupKindInfo &J2AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       {"fixup_J2_BSR", 4, 12, MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_J2_BRA", 4, 12, MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_J2_BT", 8, 8, MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_J2_GA", 0, 8, 0},
+      {"fixup_J2_GA00", 0, 8, 0},
+      {"fixup_J2_GA0000", 0, 8, 0},
+      {"fixup_J2_GA000000", 0, 8, 0},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -78,6 +86,7 @@ void J2AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
                               unsigned DataSize, uint64_t Value,
                               bool IsPCRel) const {
   auto Offset = Fixup.getOffset();
+  Offset = 0;
   switch ((unsigned)Fixup.getKind()) {
   case J2::fixup_J2_BSR:
   case J2::fixup_J2_BRA:
@@ -100,7 +109,35 @@ void J2AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
     *(uint16_t *)(Data + Offset) |= PcRelOffset;
     break;
   }
-
+  case J2::fixup_J2_GA:
+  {
+    llvm::errs() << "Off: " << Offset << "\n";
+    llvm::errs() << "Value: " << Value << "\n";
+    *(uint16_t *)(Data + Offset) &= 0xFF00;
+    *(uint16_t *)(Data + Offset) |= (Value >> 24) & 0xFF;
+    break;
+  }
+  case J2::fixup_J2_GA00:
+  {
+    llvm::errs() << "Off: " << Offset << "\n";
+    *(uint16_t *)(Data + Offset) &= 0xFF00;
+    *(uint16_t *)(Data + Offset) |= (Value >> 16) & 0xFF00;
+    break;
+  }
+  case J2::fixup_J2_GA0000:
+  {
+    llvm::errs() << "Off: " << Offset << "\n";
+    *(uint16_t *)(Data + Offset) &= 0xFF00;
+    *(uint16_t *)(Data + Offset) |= (Value >> 8) & 0xFF0000;
+    break;
+  }
+  case J2::fixup_J2_GA000000:
+  {
+    llvm::errs() << "Off: " << Offset << "\n";
+    *(uint16_t *)(Data + Offset) &= 0xFF00;
+    *(uint16_t *)(Data + Offset) |= (Value >> 24) & 0xFF000000;
+    break;
+  }
   }
 }
 

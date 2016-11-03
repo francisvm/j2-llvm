@@ -233,3 +233,16 @@ class FNI<bits<4> op, dag outs, dag ins, string asmstr, list<dag> pattern,
   let Inst{11 - 8} = dst;
   let Inst{7 - 0} = imm;
 }
+
+//===----------------------------------------------------------------------===//
+// Format Pseudo instruction class in J2
+//===----------------------------------------------------------------------===//
+
+def Pseudo : Format<12>;
+
+class Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern,
+             InstrItinClass itin> : J2Inst<outs, ins, asmstr, pattern, itin,
+             Pseudo> {
+  let Inst{15 - 0 } = 0;
+  let isPseudo = 1;
+}

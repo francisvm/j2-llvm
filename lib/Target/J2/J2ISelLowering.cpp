@@ -14,12 +14,17 @@
 
 #include "J2ISelLowering.h"
 #include "J2TargetMachine.h"
+#include "MCTargetDesc/J2BaseInfo.h"
 #include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include <algorithm>
 
 using namespace llvm;
 
 #include "J2GenCallingConv.inc"
+
+#define GET_INSTRINFO_ENUM
+#include "J2GenInstrInfo.inc"
 
 J2TargetLowering::J2TargetLowering(const J2TargetMachine &TM,
                                    const J2Subtarget &STI)
@@ -243,12 +248,15 @@ SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       Glue = Chain.getValue(1);
       RegsToPass.emplace_back(VA.getLocReg(), Arg);
     }
-
-    if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
-      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), DL, MVT::i32);
-    else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
-      Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
   }
+
+  if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
+    //if (!G->getGlobal()->hasLocalLinkage())
+      Callee = LowerGlobalAddress(Callee, DAG);
+    //else
+      //Callee = DAG.getTargetGlobalAddress(G->getGlobal(), DL, MVT::i32);
+  } else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
+    Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
 
   SmallVector<SDValue, 8> Ops{Chain, Callee};
   std::transform(RegsToPass.begin(), RegsToPass.end(), std::back_inserter(Ops),
@@ -282,4 +290,107 @@ SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   }
 
   return Chain;
+}
+
+MachineBasicBlock *
+J2TargetLowering::EmitMOV32irImm(MachineInstr &MI,
+                                 MachineBasicBlock *MBB) const {
+  const TargetInstrInfo &TII = *MBB->getParent()->getSubtarget().getInstrInfo();
+  DebugLoc DL = MI.getDebugLoc();
+
+  const BasicBlock *BB = MBB->getBasicBlock();
+  auto I = MI.getIterator();
+  MachineFunction *MF = MBB->getParent();
+
+  // mov #32imm, reg
+  //  translates to
+  // mov #0, reg
+  // or (#32imm & 0xFF), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF00), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF0000), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF000000), reg
+
+  auto Imm = MI.getOperand(0).getImm();
+  auto Reg = MI.getOperand(1).getReg();
+  assert(Reg == J2::R0);
+
+  // mov #0, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::MOV8ri), Reg).addImm(0);
+  // or (#32imm & 0xFF), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addImm((Imm & 0xFF000000) >> 24);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF00), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addImm((Imm & 0xFF0000) >> 16);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF0000), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addImm((Imm & 0xFF00) >> 8);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF000000), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addImm((Imm & 0xFF) >> 0);
+
+  MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return MBB;
+}
+
+MachineBasicBlock *
+J2TargetLowering::EmitMOV32irGlobalAddress(MachineInstr &MI,
+                                         MachineBasicBlock *MBB) const {
+  const TargetInstrInfo &TII = *MBB->getParent()->getSubtarget().getInstrInfo();
+  DebugLoc DL = MI.getDebugLoc();
+
+  const BasicBlock *BB = MBB->getBasicBlock();
+  auto I = MI.getIterator();
+  MachineFunction *MF = MBB->getParent();
+
+  // mov <ga>, reg
+  //  translates to
+  // mov ga, reg
+  // or (#32imm & 0xFF), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF00), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF0000), reg
+  // shl 8, reg
+  // or (#32imm & 0xFF000000), reg
+
+  auto GV = MI.getOperand(0).getGlobal();
+  auto Reg = MI.getOperand(1).getReg();
+  assert(Reg == J2::R0);
+
+  // mov #0, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::MOV8ri), Reg).addImm(0);
+  // or (#32imm & 0xFF), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addGlobalAddress(GV, 0, J2II::GA000000);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF00), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addGlobalAddress(GV, 0, J2II::GA0000);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF0000), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addGlobalAddress(GV, 0, J2II::GA00);
+  // shl 8, reg
+  BuildMI(*MBB, I, DL, TII.get(J2::SHLL8)).addReg(Reg);
+  // or (#32imm & 0xFF000000), reg
+  BuildMI(*MBB, I, DL, TII.get(J2::ORri)).addGlobalAddress(GV, 0, J2II::GA);
+
+  MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return MBB;
+}
+
+MachineBasicBlock *
+J2TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
+                                              MachineBasicBlock *MBB) const {
+  assert(MI.getOpcode() == J2::MOV32ir && "Unexpected instr type to insert");
+
+  if (MI.getOpcode() == J2::MOV32ir && MI.getOperand(0).isImm())
+    return EmitMOV32irImm(MI, MBB);
+  else if (MI.getOpcode() == J2::MOV32ir && MI.getOperand(0).isGlobal())
+    return EmitMOV32irGlobalAddress(MI, MBB);
 }

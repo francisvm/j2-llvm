@@ -27,6 +27,12 @@ enum Fixups {
   // Conditional jump
   fixup_J2_BT,
 
+  // GlobalAddressPieces
+  fixup_J2_GA,
+  fixup_J2_GA00,
+  fixup_J2_GA0000,
+  fixup_J2_GA000000,
+
   // Marker
   LastTargetFixupKind,
   NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind

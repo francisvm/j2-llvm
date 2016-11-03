@@ -83,8 +83,14 @@ def BT : FD<0x89, (outs), (ins j2BRATarget:$target),
 }
 }
 
-def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
-                 "mov\t$imm, $rn", [ (set i32:$rn, i32immSExt8:$imm) ],
+let usesCustomInserter = 1, Defs = [ R0 ] in {
+def MOV32ir : Pseudo<(outs), (ins i32imm:$imm),
+                     "mov\t$imm, r0", [ (set R0, imm:$imm) ],
+                     NoItinerary>;
+}
+
+def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i8imm:$imm),
+                 "mov\t$imm, $rn", [],
                  NoItinerary>;
 
 def MOV32rr : FNM<0x6, 0x3, (outs GPR:$rn), (ins GPR:$rm),
@@ -305,10 +311,7 @@ def MULrr0 : FN<0x4, 0x80, (outs GPR:$rnd), (ins GPR:$rns),
 def : Pat<(i32 (mulhu i32:$rm, i32:$rn)),
           (i32 (MULrr i32:$rm, i32:$rn))>;
 
-def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV8ri tglobaladdr:$in)>;
-
-// Calling a target global addr, results in calling the global addr.
-def : Pat<(J2Call (J2Wrapper tglobaladdr:$in)), (BSR tglobaladdr:$in)>;
+def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV32ir tglobaladdr:$in)>;
 
 let isCompare = 1, Defs = [ SR ] in { // Sets the T bit
 class CMP<bits<4> op, bits<4> data, string asmstr, CondCode CC>
