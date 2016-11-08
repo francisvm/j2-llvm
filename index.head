@@ -133,6 +133,11 @@
         text-align: center;
       }
 
+      .xtrct img {
+        background-color: #71757a;
+        border-radius: 8px;
+      }
+
     </style>
   </head>
   <body>

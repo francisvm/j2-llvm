@@ -54,3 +54,16 @@ http://www.shared-ptr.com/sh_insns.html
 .twitter[[@thegameg](https://twitter.com/thegameg)]
 
 .footnote[Slideshow created using [remark](http://github.com/gnab/remark).]
+
+---
+class: middle, center, inverse
+
+### xtrct
+
+#### WHY ???????????????????????
+
+```
+xtrct Rm,Rn                 Rm:Rn middle 32 bits -> Rn            0010nnnnmmmm1101
+```
+
+.xtrct[![LLVM](sources/xtrct.svg)]
