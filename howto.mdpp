@@ -428,8 +428,8 @@ J2
 
 ```asm
 mov.l @Rm, Rn                           -                   (Rm) -> Rn
-mov.l @(disp, Rm), Rn                   -                   (Rm + disp * 4) -> Rn
 mov.l @(R0, Rm), Rn                     -                   (R0 + Rm) -> Rn
+mov.l @(disp, Rm), Rn                   -                   (Rm + disp * 4) -> Rn
 ```
 
 Select the correct addressing mode.
@@ -454,10 +454,10 @@ class: top, center, inverse
 
 ```asm
 mov.l r14, @r15			 ; push $fp
-mov r15, r14				; $sp = $fp
+mov r15, r14				; $fp = $sp
 add #-8, r15				; $sp -= 8
 [...]
-mov r14, r15				; $fp = $sp
+mov r14, r15				; $sp = $fp
 mov.l @14, r14			  ; pop $fp
 rts						 ; return
 ```
