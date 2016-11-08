@@ -133,6 +133,11 @@
         text-align: center;
       }
 
+      .xtrct img {
+        background-color: #71757a;
+        border-radius: 8px;
+      }
+
     </style>
   </head>
   <body>
@@ -355,10 +360,6 @@ class: middle, center, inverse
 
 #### Lowers front end constructions to lower-level ones
 
-#### Intermediate representations are supposed to be target-independent
-
-#### LLVM IR is not, because source languages depend on it
-
 ---
 class: top, center, inverse
 
@@ -415,33 +416,6 @@ argument passing, result value, stack alignment, argument types, etc.
 
 ```center
 symbols, relocation generation, ELF definitions, etc.
-```
-
----
-class: top, center, inverse
-
-## LLVM Core
-
-#### Lowering:
-
-```center
-expand instructions, copy arguments to registers, stack management, etc.
-```
-
---
-
-#### Legalization:
-
-```center
-legal types, legal instructions, expand illegal instructions etc.
-```
-
---
-
-#### Target-specific passes:
-
-```center
-compute delay slots, optimize addressing mode, etc.
 ```
 
 ---
@@ -566,12 +540,6 @@ class: middle, center, inverse
 
 ##### Focus on the description of the target
 
---
-
-##### Performance
-
-
-
 ---
 
 class: middle, center, inverse
@@ -664,9 +632,10 @@ add Rm,Rn                        Rm + Rn -> Rn                    0011nnnnmmmm11
 ```tablegen
 let                 , Constraints = "$rnd = $rns",           in {
   def ADDrr :    <   ,    , (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
-                  "add $rm, $rnd",
-                  [ (                                     ) ]>;
+                  "             ",
+                  [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ]>;
 ```
+
 ---
 
 class: middle, center, inverse
@@ -681,6 +650,7 @@ let                 , Constraints = "$rnd = $rns",           in {
                   "add $rm, $rnd",
                   [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ]>;
 ```
+
 ---
 
 class: middle, center, inverse
@@ -803,43 +773,8 @@ class: top, center, inverse
 
 # Code generation
 
-### Calling convention lowering
-
-```tablegen
-def CC_J2 : CallingConv<[
-  CCIfType<[ i1, i8, i16 ], CCPromoteToType<i32>>,
-  CCIfType<[ i32 ], CCAssignToReg<[ R4, R5, R6, R7 ]>>,
-  CCIfType<[ i32 ], CCAssignToStack<4, 4>> // 4 bytes size, 4 bytes alignment.
-+]>;
-```
-
---
-
-#### Ask calling convention what to do
-
-#### Generate target-specific instructions
-
-#### J2-specific: move arguments to registers
-
----
-
-class: top, center, inverse
-
-# Code generation
-
 ### Legalization
 
---
-
-```llvm
-%bool = cmp slt r1, r2
-```
-```asm
-cmp/ge r2, r1
-```
-
---
-|
 ```llvm
 %sh = shl r1, 20
 ```
@@ -979,31 +914,6 @@ rts						 ; return
 * storeRegToStackSlot
 
 * loadRegFromStackSlot
-
----
-
-class: top, center, inverse
-
-# Code generation
-
-### Relocations
-
-#### Generate relocations for unknown symbols
-
-```tablegen
-def BSR : FD12<0xB, (outs), (ins j2CallTarget:$target),
-               "bsr $target",
-               [ (call tglobaladdr:$target) ]>;
-```
-
---
-
-##### Add fixups to the final object file
-
-```c++
-Offset = 0;
-MCFixup::create(Offset, MO.getExpr(), J2::fixup_J2_BSR, MI.getLoc());
-```
 
 ---
 
@@ -1199,6 +1109,19 @@ http://www.shared-ptr.com/sh_insns.html
 .twitter[[@thegameg](https://twitter.com/thegameg)]
 
 .footnote[Slideshow created using [remark](http://github.com/gnab/remark).]
+
+---
+class: middle, center, inverse
+
+### xtrct
+
+#### WHY ???????????????????????
+
+```
+xtrct Rm,Rn                 Rm:Rn middle 32 bits -> Rn            0010nnnnmmmm1101
+```
+
+.xtrct[![LLVM](sources/xtrct.svg)]
     </textarea>
     <script src="vendor/remark.js"></script>
     <script>
