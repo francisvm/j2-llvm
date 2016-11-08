@@ -53,7 +53,7 @@
         font-family: 'Ubuntu Mono';
       }
       .inverse {
-        background: #111111;
+        background: #111111 url("sources/lse.png") no-repeat left 600px;
         color: #cfcfcf;
         text-shadow: 0 0 5px #000;
         position: left;
