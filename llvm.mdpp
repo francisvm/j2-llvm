@@ -68,14 +68,6 @@ CPP defines:
 __TARGET__, __ELF_, __APPLE__, __x86__, etc.
 ```
 
---
-
-`ld.so` / ELF:
-
-```center
-loader, ELF32 / ELF64, etc.
-```
-
 ---
 class: top, center, inverse
 
