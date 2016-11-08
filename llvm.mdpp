@@ -43,10 +43,6 @@ class: middle, center, inverse
 
 #### Lowers front end constructions to lower-level ones
 
-#### Intermediate representations are supposed to be target-independent
-
-#### LLVM IR is not, because source languages depend on it
-
 ---
 class: top, center, inverse
 
@@ -103,33 +99,6 @@ argument passing, result value, stack alignment, argument types, etc.
 
 ```center
 symbols, relocation generation, ELF definitions, etc.
-```
-
----
-class: top, center, inverse
-
-## LLVM Core
-
-#### Lowering:
-
-```center
-expand instructions, copy arguments to registers, stack management, etc.
-```
-
---
-
-#### Legalization:
-
-```center
-legal types, legal instructions, expand illegal instructions etc.
-```
-
---
-
-#### Target-specific passes:
-
-```center
-compute delay slots, optimize addressing mode, etc.
 ```
 
 ---
