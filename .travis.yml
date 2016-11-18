@@ -10,4 +10,4 @@ script:
 
 env:
   global:
-    - ENCRYPTION_LABEL: "e590415c2d55"
+    - ENCRYPTION_LABEL: "1e90a3e7ebbb"
