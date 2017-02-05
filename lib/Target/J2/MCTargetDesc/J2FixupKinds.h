@@ -21,6 +21,9 @@ enum Fixups {
   // 12-bit displacement, multiplied by 2.
   fixup_J2_PC2_12,
 
+  // 8-bit displacement, multiplied by 2.
+  fixup_J2_PC2_8,
+
   // Marker
   LastTargetFixupKind,
   NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
