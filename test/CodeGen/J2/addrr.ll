@@ -8,4 +8,5 @@ entry:
 ; CHECK: add [[REG1:r[45]+]], [[REG2:r[45]+]]
 ; CHECK-NEXT: mov [[REG2]], r0
 ; CHECK: rts
+; CHECK-NEXT: nop
 }

@@ -41,6 +41,8 @@ public:
   }
 };
 
+FunctionPass *createJ2DelaySlotFillerPass(const J2TargetMachine & /*tm*/);
+
 } // end namespace llvm
 
 #endif

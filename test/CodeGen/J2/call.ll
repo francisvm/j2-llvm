@@ -9,8 +9,10 @@ entry:
 ; CHECK: double_sum:
 ; Prologue here.
 ; CHECK: bsr sum
+; CHECK-NEXT: nop
 ; Epilogue here.
 ; CHECK: rts
+; CHECK-NEXT: nop
 }
 
 declare i32 @sumr(i32 %a, i32 %b)
@@ -24,10 +26,13 @@ entry:
 ; CHECK: double_sumr:
 ; Prologue here.
 ; CHECK: bsr sumr
+; CHECK-NEXT: nop
 ; CHECK-NEXT: mov r0, [[REG1:r[0-9]+]]
 ; CHECK-NEXT: mov #3, r4
 ; CHECK-NEXT: bsr sumr
+; CHECK-NEXT: nop
 ; CHECK-NEXT: add [[REG1]], r0
 ; Epilogue here.
 ; CHECK: rts
+; CHECK-NEXT: nop
 }

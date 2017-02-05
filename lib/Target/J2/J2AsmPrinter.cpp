@@ -23,9 +23,14 @@ using namespace llvm;
 void J2AsmPrinter::EmitInstruction(const MachineInstr *MI) {
   J2MCInstLower InstLower{OutContext, *this};
 
-  MCInst TmpInst;
-  InstLower.Lower(MI, TmpInst);
-  EmitToStreamer(*OutStreamer, TmpInst);
+  auto MBB = MI->getParent();
+  auto MII = MI->getIterator();
+  do {
+    MCInst TmpInst;
+    InstLower.Lower(&*MII, TmpInst);
+    EmitToStreamer(*OutStreamer, TmpInst);
+    ++MII;
+  } while (MII != MBB->instr_end() && MII->isInsideBundle());
 }
 
 void J2AsmPrinter::EmitFunctionEntryLabel() {
