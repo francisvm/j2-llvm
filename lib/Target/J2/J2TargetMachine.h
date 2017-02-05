@@ -24,6 +24,8 @@ public:
                   StringRef FS, const TargetOptions &Options,
                   Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
                   CodeGenOpt::Level OL, bool JIT);
+
+  TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
 };
 
 } // end namespace llvm
