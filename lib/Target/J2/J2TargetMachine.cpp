@@ -12,6 +12,7 @@
 
 #include "J2TargetMachine.h"
 #include "MCTargetDesc/J2MCTargetDesc.h"
+#include "J2ISelDAGToDAG.h"
 #include "J2TargetObjectFile.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -59,7 +60,7 @@ TargetPassConfig *J2TargetMachine::createPassConfig(PassManagerBase &PM) {
     }
 
     bool addInstSelector() override {
-      // FIXME : Add instruction selector.
+      addPass(new J2DAGToDAGISel(getJ2TargetMachine()));
       return false;
     }
   };
