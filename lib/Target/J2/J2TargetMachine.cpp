@@ -36,7 +36,8 @@ J2TargetMachine::J2TargetMachine(const Target &T, const Triple &TT,
                                  CodeGenOpt::Level OL)
     : LLVMTargetMachine(T, computeDataLayout(TT), TT, CPU, FS, Options,
                         getEffectiveRelocModel(RM), CM, OL),
-      TLOF(make_unique<J2TargetObjectFile>()) {
+      TLOF(make_unique<J2TargetObjectFile>()),
+      Subtarget(TT, CPU, FS, *this) {
   initAsmInfo();
 }
 

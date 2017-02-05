@@ -32,6 +32,10 @@ class raw_pwrite_stream;
 
 extern Target TheJ2Target;
 
+namespace J2_MC {
+StringRef selectJ2CPU(const Triple &TT, StringRef CPU);
+}
+
 } // End llvm namespace
 
 #define GET_REGINFO_ENUM
