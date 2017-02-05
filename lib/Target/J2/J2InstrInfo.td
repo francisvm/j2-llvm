@@ -22,6 +22,15 @@ def j2CallTarget : Operand<i32>;
 
 def j2BRATarget : Operand<OtherVT>;
 
+def j2MemOperand : Operand<i32> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops GPR, i32imm);
+}
+
+def j2MemPattern8 : ComplexPattern<i32, 2, "SelectAddr<8>", [], []>;
+def j2MemPattern16 : ComplexPattern<i32, 2, "SelectAddr<16>", [], []>;
+def j2MemPattern32 : ComplexPattern<i32, 2, "SelectAddr<32>", [], []>;
+
 //===----------------------------------------------------------------------===//
 // Describe profiles and nodes
 //===----------------------------------------------------------------------===//
@@ -240,6 +249,42 @@ def LDCGBR : LD<"c", 0x12, "gbr", GBR>;
 
 def STCVBR : ST<"c", 0x22, "vbr", VBR>;
 def LDCVBR : LD<"c", 0x22, "vbr", VBR>;
+
+let mayLoad = 1 in {
+let Defs = [ R0 ] in {
+def MOV8mr0 : FMD<0x84, (outs), (ins j2MemOperand:$addr),
+                  "mov.b\t@$addr, r0",
+                  [ (set R0, (sextloadi8 j2MemPattern8:$addr)) ],
+                  NoItinerary>;
+def MOV16mr0 : FMD<0x85, (outs), (ins j2MemOperand:$addr),
+                  "mov.w\t@$addr, r0",
+                  [ (set R0, (sextloadi16 j2MemPattern16:$addr)) ],
+                  NoItinerary>;
+}
+
+def MOV32mrd : FNMD<0x5, (outs GPR:$rn), (ins j2MemOperand:$addr),
+                    "mov.l\t@$addr, $rn",
+                    [ (set i32:$rn, (load j2MemPattern32:$addr)) ],
+                    NoItinerary>;
+}
+
+let mayStore = 1 in {
+let Uses = [ R0 ] in {
+def MOV8r0m : FMD<0x80, (outs), (ins j2MemOperand:$addr),
+                   "mov.b\tr0, @$addr",
+                   [ (truncstorei8 R0, j2MemPattern8:$addr) ],
+                   NoItinerary>;
+def MOV16r0m : FMD<0x81, (outs), (ins j2MemOperand:$addr),
+                   "mov.w\tr0, @$addr",
+                   [ (truncstorei16 R0, j2MemPattern16:$addr) ],
+                   NoItinerary>;
+}
+
+def MOV32rmd : FNMD<0x1, (outs), (ins GPR:$rm, j2MemOperand:$addr),
+                    "mov.l\t$rm, @$addr",
+                    [ (store i32:$rm, j2MemPattern32:$addr) ],
+                    NoItinerary>;
+}
 
 let isCommutable = 1 in {
 let Defs = [ MACL ] in {
