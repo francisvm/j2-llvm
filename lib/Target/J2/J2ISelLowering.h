@@ -33,6 +33,11 @@ enum NodeType : unsigned {
   // Wrapper
   Wrapper,
 
+  // Left logical shift,
+  SHL,
+
+  // Right logical shift,
+  SRL,
 };
 }
 
@@ -66,6 +71,9 @@ public:
   SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
 
   SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+
+  template <enum J2ISD::NodeType Opcode>
+  SDValue LowerShift(SDValue Op, SelectionDAG &DAG) const;
 };
 }
 
