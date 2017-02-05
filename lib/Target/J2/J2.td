@@ -16,10 +16,12 @@
 include "llvm/Target/Target.td"
 
 //===----------------------------------------------------------------------===//
-// Register File
+// Register File, Calling Conv, Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
 include "J2RegisterInfo.td"
+
+include "J2CallingConv.td"
 
 //===----------------------------------------------------------------------===//
 // Instructions File

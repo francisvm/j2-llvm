@@ -23,6 +23,9 @@ namespace J2ISD {
 enum NodeType : unsigned {
   // Start the numbering from where ISD NodeType finishes.
   FIRST_NUMBER = ISD::BUILTIN_OP_END,
+
+  // Ret
+  Ret,
 };
 }
 
@@ -35,7 +38,20 @@ class J2Subtarget;
 
 class J2TargetLowering : public TargetLowering {
 public:
-  explicit J2TargetLowering(const J2TargetMachine &TM);
+  explicit J2TargetLowering(const J2TargetMachine &TM, const J2Subtarget &STI);
+
+  const char *getTargetNodeName(unsigned Opcode) const override;
+
+  SDValue LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv,
+                               bool isVarArg,
+                               const SmallVectorImpl<ISD::InputArg> &Ins,
+                               const SDLoc &dl, SelectionDAG &DAG,
+                               SmallVectorImpl<SDValue> &InVals) const override;
+
+  SDValue LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
+                      const SmallVectorImpl<ISD::OutputArg> &Outs,
+                      const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
+                      SelectionDAG &DAG) const override;
 };
 }
 

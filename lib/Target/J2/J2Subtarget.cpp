@@ -26,4 +26,4 @@ static constexpr size_t StackAlignment = 4;
 J2Subtarget::J2Subtarget(const Triple &TT, StringRef CPU, StringRef FS,
                          const J2TargetMachine &TM)
     : J2GenSubtargetInfo(TT, CPU, FS), TargetTriple{TT}, RegisterInfo{},
-      InstrInfo{}, FrameLowering{StackAlignment}, TargetLowering{TM} {}
+      InstrInfo{}, FrameLowering{StackAlignment}, TargetLowering{TM, *this} {}
