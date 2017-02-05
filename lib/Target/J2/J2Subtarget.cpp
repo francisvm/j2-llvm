@@ -21,6 +21,9 @@ using namespace llvm;
 #define GET_SUBTARGETINFO_CTOR
 #include "J2GenSubtargetInfo.inc"
 
+static constexpr size_t StackAlignment = 4;
+
 J2Subtarget::J2Subtarget(const Triple &TT, StringRef CPU, StringRef FS,
                          const J2TargetMachine &TM)
-    : J2GenSubtargetInfo(TT, CPU, FS), TargetTriple{TT}, RegisterInfo{}, InstrInfo{} {}
+    : J2GenSubtargetInfo(TT, CPU, FS), TargetTriple{TT}, RegisterInfo{},
+      InstrInfo{}, FrameLowering{StackAlignment}, TargetLowering{TM} {}
