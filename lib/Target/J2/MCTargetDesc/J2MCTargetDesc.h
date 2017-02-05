@@ -24,6 +24,7 @@ class MCInstrInfo;
 class MCObjectWriter;
 class MCRegisterInfo;
 class MCSubtargetInfo;
+class MCTargetOptions;
 class StringRef;
 class Target;
 class Triple;
@@ -31,6 +32,10 @@ class raw_ostream;
 class raw_pwrite_stream;
 
 extern Target TheJ2Target;
+
+MCAsmBackend *createJ2AsmBackend(const Target &T, const MCRegisterInfo &MRI,
+                                 const Triple &TT, StringRef CPU,
+                                 const MCTargetOptions &Options);
 
 namespace J2_MC {
 StringRef selectJ2CPU(const Triple &TT, StringRef CPU);
