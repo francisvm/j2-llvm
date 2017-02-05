@@ -80,3 +80,12 @@ void J2FrameLowering::emitEpilogue(MachineFunction &MF,
   if (hasFP(MF)) // mov r15, r14 (sp <- fp)
     BuildMI(MBB, it, DL, TTI.get(J2::MOV32rr), J2::R15).addReg(J2::R14);
 }
+
+void J2FrameLowering::determineCalleeSaves(MachineFunction &MF,
+                                           BitVector &SavedRegs,
+                                           RegScavenger *RS) const {
+  TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+  // Spill FP, so that it can be reused after a function call.
+  if (hasFP(MF))
+    SavedRegs.set(J2::R14);
+}

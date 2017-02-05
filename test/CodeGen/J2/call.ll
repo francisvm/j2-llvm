@@ -7,8 +7,10 @@ entry:
   call void @sum(i32 %a, i32 %b)
   ret void
 ; CHECK: double_sum:
+; Prologue here.
 ; CHECK: bsr sum
-; CHECK-NEXT: rts
+; Epilogue here.
+; CHECK: rts
 }
 
 declare i32 @sumr(i32 %a, i32 %b)
@@ -20,10 +22,12 @@ entry:
   %add = add nsw i32 %call1, %call
   ret i32 %add
 ; CHECK: double_sumr:
-; CHECK: bsr sum
+; Prologue here.
+; CHECK: bsr sumr
 ; CHECK-NEXT: mov r0, [[REG1:r[0-9]+]]
 ; CHECK-NEXT: mov #3, r4
-; CHECK-NEXT: bsr sum
+; CHECK-NEXT: bsr sumr
 ; CHECK-NEXT: add [[REG1]], r0
-; CHECK-NEXT: rts
+; Epilogue here.
+; CHECK: rts
 }
