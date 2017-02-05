@@ -48,6 +48,8 @@ FunctionPass *createJ2DelaySlotFillerPass(const J2TargetMachine & /*tm*/);
 
 FunctionPass *createJ2ConstantIslandPass();
 
+FunctionPass *createJ2BigStackFrameExpansionPass();
+
 } // end namespace llvm
 
 #endif

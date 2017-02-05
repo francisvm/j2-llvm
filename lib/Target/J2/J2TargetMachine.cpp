@@ -56,6 +56,10 @@ TargetPassConfig *J2TargetMachine::createPassConfig(PassManagerBase &PM) {
       return false;
     }
 
+    void addPreRegAlloc() override {
+      addPass(createJ2BigStackFrameExpansionPass());
+    }
+
     void addPreEmitPass() override {
       addPass(createJ2DelaySlotFillerPass(getJ2TargetMachine()));
       addPass(createJ2ConstantIslandPass());

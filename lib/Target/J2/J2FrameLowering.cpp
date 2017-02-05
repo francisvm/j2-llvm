@@ -12,10 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2FrameLowering.h"
+#include "J2MachineFunctionInfo.h"
 #include "J2Subtarget.h"
+#include "J2TargetMachine.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/CodeGen/MachineRegisterInfo.h"
 
 using namespace llvm;
 
@@ -52,8 +55,11 @@ void J2FrameLowering::emitPrologue(MachineFunction &MF,
         .addReg(J2::R15)
         .addImm(-StackSize);
   else {
-    // FIXME: Use MOV.L/W with R0.
-    llvm_unreachable("Not implemented yet");
+    // FIXME: Fetch vreg from MFI.
+    auto Vreg0 = MF.getInfo<J2MachineFunctionInfo>()->getFrameSizeVreg();
+    BuildMI(MBB, it, DL, TTI.get(J2::ADDrr), J2::R15)
+      .addReg(J2::R15)
+      .addReg(Vreg0);
   }
 }
 
@@ -135,4 +141,42 @@ bool J2FrameLowering::restoreCalleeSavedRegisters(
         .addReg(J2::R15);
 
   return true;
+}
+
+/// This pass is used to handle big stack frames.
+struct J2BigStackFrameExpansion : MachineFunctionPass {
+  static char ID;
+  J2BigStackFrameExpansion() : MachineFunctionPass(ID) {}
+
+  bool runOnMachineFunction(MachineFunction &MF) {
+    auto &MFI = MF.getFrameInfo();
+    auto StackSize = MFI.getStackSize() - MFI.getCalleeSavedInfo().size() * 4;
+
+    // Exit early if the size of the stack frame fits on 8 bits.
+    if (isInt<8>(-StackSize))
+      return false;
+
+    auto &TII =
+        *static_cast<const J2Subtarget &>(MF.getSubtarget()).getInstrInfo();
+    auto& EntryMBB = MF.front();
+    auto MBBI = EntryMBB.begin();
+    auto DL = EntryMBB.findDebugLoc(MBBI);
+
+    auto Vreg0 = MF.getRegInfo().createVirtualRegister(&J2::GPRRegClass);
+    BuildMI(EntryMBB, MBBI, DL, TII.get(J2::MOV32ir), Vreg0).addImm(-StackSize);
+    auto* JFI = MF.getInfo<J2MachineFunctionInfo>();
+    JFI->setFrameSizeVreg(Vreg0);
+
+    return true;
+  }
+
+  StringRef getPassName() const { return "J2 big stack frame expansion"; }
+};
+
+char J2BigStackFrameExpansion::ID = 0;
+
+/// createJ2BigStackFrameExpansionPass - returns an instance of the big stack
+/// frame expansion pass
+FunctionPass *llvm::createJ2BigStackFrameExpansionPass() {
+  return new J2BigStackFrameExpansion();
 }
