@@ -23,6 +23,17 @@ class J2InstrInfo : public J2GenInstrInfo {
   void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
                    const DebugLoc &DL, unsigned DestReg, unsigned SrcReg,
                    bool KillSrc) const override;
+
+  void storeRegToStackSlot(MachineBasicBlock &MBB,
+                           MachineBasicBlock::iterator MI, unsigned SrcReg,
+                           bool isKill, int FrameIndex,
+                           const TargetRegisterClass *RC,
+                           const TargetRegisterInfo *TRI) const override;
+
+  void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                          MachineBasicBlock::iterator MI, unsigned DstReg,
+                          int FrameIndex, const TargetRegisterClass *RC,
+                          const TargetRegisterInfo *TRI) const override;
 };
 }
 
