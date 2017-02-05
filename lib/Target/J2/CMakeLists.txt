@@ -11,6 +11,7 @@ add_llvm_target(J2CodeGen
   J2InstrInfo.cpp
   J2RegisterInfo.cpp
   J2TargetMachine.cpp
+  J2TargetObjectFile.cpp
   )
 
 add_subdirectory(InstPrinter)
