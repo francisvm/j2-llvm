@@ -70,6 +70,7 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 
   switch (MI.getOpcode()) {
   case J2::BSR:
+  case J2::BRA:
     FixupKind = J2::fixup_J2_PC2_12;
     break;
   default:
