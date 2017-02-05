@@ -13,6 +13,7 @@
 //
 
 #include "J2MCCodeEmitter.h"
+#include "J2FixupKinds.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCFixup.h"
 #include "llvm/MC/MCInst.h"
@@ -63,9 +64,22 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
     return static_cast<unsigned>(MO.getImm());
 
   // MO must be an Expr.
-  assert(MO.isExpr());
-  llvm_unreachable("Not implemented yet.");
-  return {};
+  assert(MO.isExpr() && MO.getExpr()->getKind() == MCExpr::SymbolRef);
+
+  J2::Fixups FixupKind = J2::fixup_J2_NONE;
+
+  switch (MI.getOpcode()) {
+  case J2::BSR:
+    FixupKind = J2::fixup_J2_PC2_12;
+    break;
+  default:
+    llvm_unreachable("Opcode not handled.");
+  }
+
+  Fixups.push_back(
+      MCFixup::create(0, MO.getExpr(), MCFixupKind(FixupKind), MI.getLoc()));
+
+  return 0;
 }
 
 /// encodeInstruction - Emit the instruction.

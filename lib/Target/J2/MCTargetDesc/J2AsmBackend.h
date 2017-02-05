@@ -37,13 +37,13 @@ public:
   std::unique_ptr<MCObjectWriter>
   createObjectWriter(raw_pwrite_stream &OS) const override;
 
-  void applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
-                  uint64_t Value, bool IsPCRel) const override {
-    // FIXME.
-    llvm_unreachable("Not implemented yet.");
-  }
+  void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
+                  const MCValue &Target, MutableArrayRef<char> Data,
+                  uint64_t Value, bool IsResolved) const override;
 
   unsigned getNumFixupKinds() const override { return J2::NumTargetFixupKinds; }
+
+  const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
   /// @name Target Relaxation Interfaces
   /// @{
