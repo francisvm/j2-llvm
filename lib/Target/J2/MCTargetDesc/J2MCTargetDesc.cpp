@@ -109,4 +109,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
 
   // Register the MCSubtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(*T, createJ2MCSubtargetInfo);
+
+  // Register the MCAsmBackend.
+  TargetRegistry::RegisterMCAsmBackend(*T, createJ2AsmBackend);
 }
