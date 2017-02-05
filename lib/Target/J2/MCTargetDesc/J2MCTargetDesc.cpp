@@ -13,6 +13,7 @@
 
 #include "J2MCTargetDesc.h"
 #include "J2MCAsmInfo.h"
+#include "J2TargetStreamer.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCInstrInfo.h"
@@ -45,6 +46,18 @@ static MCAsmInfo *createJ2MCAsmInfo(const MCRegisterInfo &MRI,
   return MAI;
 }
 
+static MCTargetStreamer *createJ2AsmTargetStreamer(MCStreamer &S,
+                                                   formatted_raw_ostream &OS,
+                                                   MCInstPrinter *InstPrint,
+                                                   bool isVerboseAsm) {
+  return new J2TargetAsmStreamer(S);
+}
+
+static MCTargetStreamer *
+createJ2ObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI) {
+  return new J2TargetELFStreamer(S);
+}
+
 extern "C" void LLVMInitializeJ2TargetMC() {
   Target *T = &TheJ2Target;
   // Register the MC register info.
@@ -55,4 +68,10 @@ extern "C" void LLVMInitializeJ2TargetMC() {
 
   // Register the MC asm info.
   RegisterMCAsmInfoFn X(*T, createJ2MCAsmInfo);
+
+  // Register the asm target streamer.
+  TargetRegistry::RegisterAsmTargetStreamer(*T, createJ2AsmTargetStreamer);
+  // Register the object target streamer.
+  TargetRegistry::RegisterObjectTargetStreamer(*T,
+                                               createJ2ObjectTargetStreamer);
 }
