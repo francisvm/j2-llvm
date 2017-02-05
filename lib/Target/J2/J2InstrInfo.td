@@ -38,6 +38,10 @@ def SDT_J2Wrapper : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>, SDTCisPtrTy<0>]>;
 
 def J2Wrapper : SDNode <"J2ISD::Wrapper", SDT_J2Wrapper>;
 
+def J2Shl : SDNode <"J2ISD::SHL", SDTIntShiftOp>;
+
+def J2Srl : SDNode <"J2ISD::SRL", SDTIntShiftOp>;
+
 //===----------------------------------------------------------------------===//
 // Describe instructions
 //===----------------------------------------------------------------------===//
@@ -101,7 +105,8 @@ def MOV32rm : FNM<0x2, 0x2, (outs), (ins GPR:$rm, GPR:$rn),
                   [ (store i32:$rm, i32:$rn) ], NoItinerary>;
 }
 
-let isCommutable = 1, Constraints = "$rnd = $rns", isAdd = 1 in {
+let Constraints = "$rnd = $rns" in {
+let isCommutable = 1, isAdd = 1 in {
 def ADDrr : FNM<0x3, 0xC, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
                 "add\t$rm, $rnd",
                 [ (set i32:$rnd, (add i32:$rm, i32:$rns)) ],
@@ -111,11 +116,95 @@ def ADDri : FNI<0x7, (outs GPR:$rnd), (ins GPR:$rns, i32imm:$imm),
                 "add\t$imm, $rnd",
                 [ (set i32:$rnd, (add i32:$rns, i32immSExt8:$imm)) ],
                 NoItinerary>;
+}
 
 def SUBrr : FNM<0x3, 0xB, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
                 "sub\t$rm, $rnd",
                 [ (set i32:$rnd, (sub i32:$rm, i32:$rns)) ],
                 NoItinerary>;
+
+def ANDrr : FNM<0x2, 0x9, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                "and\t$rm, $rnd",
+                [ (set i32:$rnd, (and i32:$rm, i32:$rns)) ],
+                NoItinerary>;
+
+def ORrr : FNM<0x2, 0xB, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+               "or\t$rm, $rnd",
+               [ (set i32:$rnd, (or i32:$rm, i32:$rns)) ],
+               NoItinerary>;
+
+def XORrr : FNM<0x2, 0xA, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                "xor\t$rm, $rnd",
+                [ (set i32:$rnd, (xor i32:$rm, i32:$rns)) ],
+                NoItinerary>;
+
+let Defs = [ SR ] in {
+def SHAL : FN<0x4, 0x20, (outs GPR:$rnd), (ins GPR:$rns),
+              "shal\t$rnd",
+              [ (set GPR:$rnd, (J2Shl GPR:$rns, (i32 1))) ],
+              NoItinerary>;
+
+def SHAR : FN<0x4, 0x21, (outs GPR:$rnd), (ins GPR:$rns),
+              "shar\t$rnd",
+              [ (set i32:$rnd, (sra i32:$rns, (i32 1))) ],
+              NoItinerary>;
+
+def SHLR : FN<0x4, 0x1, (outs GPR:$rnd), (ins GPR:$rns),
+              "shlr\t$rnd",
+              [ (set i32:$rnd, (J2Srl i32:$rns, (i32 1))) ],
+              NoItinerary>;
+}
+
+def SHLL2 : FN<0x4, 0x8, (outs GPR:$rnd), (ins GPR:$rns),
+              "shll2\t$rnd",
+              [ (set i32:$rnd, (J2Shl i32:$rns, (i32 2))) ],
+              NoItinerary>;
+
+def SHLL8 : FN<0x4, 0x18, (outs GPR:$rnd), (ins GPR:$rns),
+              "shll8\t$rnd",
+              [ (set i32:$rnd, (J2Shl i32:$rns, (i32 8))) ],
+              NoItinerary>;
+
+def SHLL16 : FN<0x4, 0x28, (outs GPR:$rnd), (ins GPR:$rns),
+               "shll16\t$rnd",
+               [ (set i32:$rnd, (J2Shl i32:$rns, (i32 16))) ],
+               NoItinerary>;
+
+def SHLR2 : FN<0x4, 0x9, (outs GPR:$rnd), (ins GPR:$rns),
+              "shlr2\t$rnd",
+              [ (set i32:$rnd, (J2Srl i32:$rns, (i32 2))) ],
+              NoItinerary>;
+
+def SHLR8 : FN<0x4, 0x19, (outs GPR:$rnd), (ins GPR:$rns),
+              "shlr8\t$rnd",
+              [ (set i32:$rnd, (J2Srl i32:$rns, (i32 8))) ],
+              NoItinerary>;
+
+def SHLR16 : FN<0x4, 0x29, (outs GPR:$rnd), (ins GPR:$rns),
+               "shlr16\t$rnd",
+               [ (set i32:$rnd, (J2Srl i32:$rns, (i32 16))) ],
+               NoItinerary>;
+}
+
+def : Pat<(i32 (J2Srl i32:$rn, (i32 0))),
+          (i32 $rn)>;
+
+def : Pat<(i32 (J2Shl i32:$rn, (i32 0))),
+          (i32 $rn)>;
+
+let Defs = [ R0 ], Uses = [ R0 ] in {
+def ANDri : FN<0xC, 0x8, (outs), (ins i32imm:$imm),
+               "and\t$imm, r0",
+               [ (set R0, (and R0, i32immSExt8:$imm)) ],
+               NoItinerary>;
+def ORri : FI<0xCB, (outs), (ins i32imm:$imm),
+              "or\t$imm, r0",
+              [ (set R0, (or R0, i32immSExt8:$imm)) ],
+              NoItinerary>;
+def XORri : FN<0xC, 0xA, (outs), (ins i32imm:$imm),
+              "xor\t$imm, r0",
+              [ (set R0, (xor R0, i32immSExt8:$imm)) ],
+              NoItinerary>;
 }
 
 let Defs = [ MAC ] in {
@@ -199,3 +288,13 @@ def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETUGT),
 // J2 does not support `a <= b` cmp. `a <= b` <=> `b > a`
 def : Pat<(setcc (i32 GPR:$rm), (i32 GPR:$rn), SETLE),
           (CMPGTrr $rn, $rm)>;
+
+def SWAP16rr : FNM<0x6, 0x8, (outs GPR:$rn), (ins GPR:$rm),
+                  "swap.b\t$rm, $rn",
+                  [ (set i32:$rn, (rotr (bswap i32:$rm), (i32 16))) ],
+                  NoItinerary>;
+
+def SWAP32rr : FNM<0x6, 0x9, (outs GPR:$rn), (ins GPR:$rm),
+                  "swap.l\t$rm, $rn",
+                  [ (set i32:$rn, (bswap i32:$rm)) ],
+                  NoItinerary>;

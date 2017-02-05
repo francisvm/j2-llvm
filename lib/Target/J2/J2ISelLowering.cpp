@@ -15,6 +15,7 @@
 #include "J2ISelLowering.h"
 #include "J2TargetMachine.h"
 #include "llvm/CodeGen/CallingConvLower.h"
+#include <algorithm>
 
 using namespace llvm;
 
@@ -37,6 +38,8 @@ J2TargetLowering::J2TargetLowering(const J2TargetMachine &TM,
 
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
+  setOperationAction(ISD::SHL, MVT::i32, Custom);
+  setOperationAction(ISD::SRL, MVT::i32, Custom);
 }
 
 const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -50,6 +53,8 @@ const char *J2TargetLowering::getTargetNodeName(unsigned Opcode) const {
     CASE(Ret);
     CASE(Call);
     CASE(Wrapper);
+    CASE(SHL);
+    CASE(SRL);
 
 #undef CASE
   }
@@ -61,6 +66,10 @@ SDValue J2TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   switch (Op.getOpcode()) {
   case ISD::GlobalAddress:
     return LowerGlobalAddress(Op, DAG);
+  case ISD::SHL:
+    return LowerShift<J2ISD::SHL>(Op, DAG);
+  case ISD::SRL:
+    return LowerShift<J2ISD::SRL>(Op, DAG);
   default:
     llvm_unreachable("unimplemented operation");
   }
@@ -74,6 +83,62 @@ SDValue J2TargetLowering::LowerGlobalAddress(SDValue Op,
   SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, Offset);
 
   return DAG.getNode(J2ISD::Wrapper, DL, MVT::i32, GA);
+}
+
+// J2 supports logical shifts of 1, 2, 8 and 16 bits. In order to generate
+// a logical shift of N, split the combination of instructions needed.
+template <enum J2ISD::NodeType Opcode>
+SDValue J2TargetLowering::LowerShift(SDValue Op, SelectionDAG &DAG) const {
+  SDLoc DL{Op};
+  auto LHS = Op.getOperand(0);
+  auto RHS = Op.getOperand(1);
+
+  if (auto Con = dyn_cast<ConstantSDNode>(RHS)) {
+    static constexpr ssize_t Ls[] = {16, 8, 2, 1};
+    auto Shift = Con->getSExtValue();
+
+    auto InitShift = [&]() -> uint8_t {
+      // No shift needed, instruction exists.
+      if (!Shift ||
+          std::find(std::begin(Ls), std::end(Ls), Shift) != std::end(Ls)) {
+        auto Ret = Shift;
+        Shift = 0;
+        return Ret;
+      }
+
+      // Even, start with 2.
+      if (Shift % 2 == 0) {
+        Shift -= 2;
+        return 2;
+      }
+
+      // Start with 1.
+      Shift -= 1;
+      return 1;
+    }();
+
+    SDValue Res = DAG.getNode(Opcode, DL, MVT::i32, LHS,
+                              DAG.getConstant(InitShift, DL, MVT::i32));
+
+    size_t CurrentSize = 0;
+    while (Shift != 0) {
+      // This should never trigger, since size 1 should suffice to extend it to
+      // the maximum.
+      assert(CurrentSize < array_lengthof(Ls) && "Array out of bounds.");
+
+      // If there is till space, use more of the same size.
+      if (Shift - Ls[CurrentSize] >= 0) {
+        Shift -= Ls[CurrentSize];
+        Res = DAG.getNode(Opcode, DL, MVT::i32, Res,
+                          DAG.getConstant(Ls[CurrentSize], DL, MVT::i32));
+      } else
+        ++CurrentSize;
+    }
+
+    return Res;
+  }
+
+  llvm_unreachable("Shift with no constants.");
 }
 
 //===----------------------------------------------------------------------===//
