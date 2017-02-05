@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2TargetMachine.h"
+#include "J2TargetObjectFile.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
@@ -34,7 +35,8 @@ J2TargetMachine::J2TargetMachine(const Target &T, const Triple &TT,
                                  Optional<Reloc::Model> RM, CodeModel::Model CM,
                                  CodeGenOpt::Level OL)
     : LLVMTargetMachine(T, computeDataLayout(TT), TT, CPU, FS, Options,
-                        getEffectiveRelocModel(RM), CM, OL) {
+                        getEffectiveRelocModel(RM), CM, OL),
+      TLOF(make_unique<J2TargetObjectFile>()) {
   initAsmInfo();
 }
 
