@@ -13,12 +13,23 @@ include "J2InstrFormats.td"
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
+// Describe profiles and nodes
+//===----------------------------------------------------------------------===//
+
+def J2Ret : SDNode<"J2ISD::Ret", SDTNone,
+                   [ SDNPHasChain, SDNPOptInGlue, SDNPVariadic ]>;
+
+//===----------------------------------------------------------------------===//
 // Describe instructions
 //===----------------------------------------------------------------------===//
 
 // FIXME: Fix itineraries.
 
 def NOP : FZERO<0x9, (outs), (ins), "nop", [], NoItinerary>;
+
+let isReturn = 1, isTerminator = 1, hasDelaySlot = 1, Uses = [ PR ] in {
+  def RTS : FZERO<0xB, (outs), (ins), "rts", [ (J2Ret) ], NoItinerary>;
+}
 
 let isCommutable = 1, Constraints = "$rnd = $rns", isAdd = 1 in {
 def ADDrr : FNM<0x3, 0xC, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
