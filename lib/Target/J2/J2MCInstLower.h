@@ -33,6 +33,10 @@ public:
 
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
   MCOperand LowerOperand(const MachineOperand &MO) const;
+
+  MCOperand LowerSymbolOperand(const MachineOperand &MO, MCSymbol *Sym) const;
+  MCSymbol *GetGlobalAddressSymbol(const MachineOperand &MO) const;
+  MCSymbol *GetExternalSymbolSymbol(const MachineOperand &MO) const;
 };
 }
 

@@ -18,12 +18,23 @@ include "J2InstrFormats.td"
 
 def i32immSExt8 : ImmLeaf<i32, [{ return isInt<8>(Imm); }]>;
 
+def j2CallTarget : Operand<i32>;
+
 //===----------------------------------------------------------------------===//
 // Describe profiles and nodes
 //===----------------------------------------------------------------------===//
 
 def J2Ret : SDNode<"J2ISD::Ret", SDTNone,
                    [ SDNPHasChain, SDNPOptInGlue, SDNPVariadic ]>;
+
+def SDT_J2Call : SDTypeProfile<0, -1, [ SDTCisVT<0, iPTR>]>;
+
+def J2Call : SDNode<"J2ISD::Call", SDT_J2Call,
+    [ SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic ]>;
+
+def SDT_J2Wrapper : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>, SDTCisPtrTy<0>]>;
+
+def J2Wrapper : SDNode <"J2ISD::Wrapper", SDT_J2Wrapper>;
 
 //===----------------------------------------------------------------------===//
 // Describe instructions
@@ -35,6 +46,14 @@ def NOP : FZERO<0x9, (outs), (ins), "nop", [], NoItinerary>;
 
 let isReturn = 1, isTerminator = 1, hasDelaySlot = 1, Uses = [ PR ] in {
   def RTS : FZERO<0xB, (outs), (ins), "rts", [ (J2Ret) ], NoItinerary>;
+}
+
+let isCall = 1, hasDelaySlot = 1, Defs = [ R0, PR ]  in {
+def JSR : FM<0x4, 0xB, (outs), (ins GPR:$rm),
+             "jsr\t$rm", [ (J2Call GPR:$rm) ], NoItinerary>;
+
+def BSR : FD12<0xB, (outs), (ins j2CallTarget:$target),
+               "bsr\t$target", [ (J2Call tglobaladdr:$target) ], NoItinerary>;
 }
 
 def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
@@ -118,3 +137,8 @@ def LDCGBR : LD<"c", 0x12, "gbr", GBR>;
 
 def STCVBR : ST<"c", 0x22, "vbr", VBR>;
 def LDCVBR : LD<"c", 0x22, "vbr", VBR>;
+
+def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV8ri tglobaladdr:$in)>;
+
+// Calling a target global addr, results in calling the global addr.
+def : Pat<(J2Call (J2Wrapper tglobaladdr:$in)), (BSR tglobaladdr:$in)>;
