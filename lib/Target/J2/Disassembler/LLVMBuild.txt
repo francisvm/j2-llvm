@@ -1,4 +1,4 @@
-;===- ./lib/Target/J2/LLVMBuild.txt ----------------------------*- Conf -*--===;
+;===- ./lib/Target/J2/Disassembler/LLVMBuild.txt ---------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -15,37 +15,14 @@
 ;
 ;===------------------------------------------------------------------------===;
 
-[common]
-subdirectories =
-  AsmParser
-  Disassembler
-  InstPrinter
-  MCTargetDesc
-  TargetInfo
-
 [component_0]
-type = TargetGroup
-name = J2
-parent = Target
-has_asmparser = 1
-has_asmprinter = 1
-has_disassembler = 1
-has_jit = 0
-
-[component_1]
 type = Library
-name = J2CodeGen
+name = J2Disassembler
 parent = J2
 required_libraries =
-  AsmPrinter
-  CodeGen
-  Core
-  J2AsmPrinter
   J2Desc
   J2Info
-  MC
-  SelectionDAG
+  MCDisassembler
   Support
-  Target
 
 add_to_library_groups = J2
