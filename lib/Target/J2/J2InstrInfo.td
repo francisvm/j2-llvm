@@ -241,6 +241,25 @@ def LDCGBR : LD<"c", 0x12, "gbr", GBR>;
 def STCVBR : ST<"c", 0x22, "vbr", VBR>;
 def LDCVBR : LD<"c", 0x22, "vbr", VBR>;
 
+let isCommutable = 1 in {
+let Defs = [ MACL ] in {
+def MULrr : FNM<0x0, 0x7, (outs), (ins GPR:$rm, GPR:$rn),
+                "mul.l\t$rm, $rn",
+                [ (set MACL, (mul i32:$rm, i32:$rn)) ],
+                NoItinerary>;
+}
+
+let Uses = [ R0 ] in {
+def MULrr0 : FN<0x4, 0x80, (outs GPR:$rnd), (ins GPR:$rns),
+               "mulr\tr0, $rnd",
+               [ (set i32:$rnd, (mul R0, i32:$rns)) ],
+               NoItinerary>;
+}
+}
+
+def : Pat<(i32 (mulhu i32:$rm, i32:$rn)),
+          (i32 (MULrr i32:$rm, i32:$rn))>;
+
 def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV8ri tglobaladdr:$in)>;
 
 // Calling a target global addr, results in calling the global addr.
