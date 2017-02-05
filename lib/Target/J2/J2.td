@@ -19,7 +19,7 @@ include "llvm/Target/Target.td"
 // Register File
 //===----------------------------------------------------------------------===//
 
-// FIXME: Define registers.
+include "J2RegisterInfo.td"
 
 //===----------------------------------------------------------------------===//
 // Instructions File
