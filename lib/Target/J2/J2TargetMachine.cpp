@@ -58,6 +58,7 @@ TargetPassConfig *J2TargetMachine::createPassConfig(PassManagerBase &PM) {
 
     void addPreEmitPass() override {
       addPass(createJ2DelaySlotFillerPass(getJ2TargetMachine()));
+      addPass(createJ2ConstantIslandPass());
     }
   };
 

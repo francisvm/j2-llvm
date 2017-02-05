@@ -14,6 +14,8 @@ add_public_tablegen_target(J2CommonTableGen)
 
 add_llvm_target(J2CodeGen
   J2AsmPrinter.cpp
+  J2ConstantIslandPass.cpp
+  J2ConstantPoolValue.cpp
   J2DelaySlotFiller.cpp
   J2FrameLowering.cpp
   J2ISelDAGToDAG.cpp

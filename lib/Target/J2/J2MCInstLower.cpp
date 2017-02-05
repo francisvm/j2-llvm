@@ -65,6 +65,8 @@ MCOperand J2MCInstLower::LowerOperand(const MachineOperand &MO) const {
   case MachineOperand::MO_MachineBasicBlock:
     return MCOperand::createExpr(
         MCSymbolRefExpr::create(MO.getMBB()->getSymbol(), Ctx));
+  case MachineOperand::MO_ConstantPoolIndex:
+    return LowerSymbolOperand(MO, Printer.GetCPISymbol(MO.getIndex()));
   }
 
   return MCOperand();

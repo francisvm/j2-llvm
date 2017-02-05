@@ -27,6 +27,14 @@ def j2MemOperand : Operand<i32> {
   let MIOperandInfo = (ops GPR, i32imm);
 }
 
+def j2PCMemOperand : Operand<i32> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops PCR, i32imm);
+}
+
+// Operand for CONSTPOOL_ENTRY pseudo-instruction.
+def j2CPInstOperand : Operand<i32>;
+
 def j2MemPattern8 : ComplexPattern<i32, 2, "SelectAddr<8>", [], []>;
 def j2MemPattern16 : ComplexPattern<i32, 2, "SelectAddr<16>", [], []>;
 def j2MemPattern32 : ComplexPattern<i32, 2, "SelectAddr<32>", [], []>;
@@ -59,6 +67,12 @@ def J2Srl : SDNode <"J2ISD::SRL", SDTIntShiftOp>;
 
 def NOP : FZERO<0x9, (outs), (ins), "nop", [], NoItinerary>;
 
+let hasSideEffects = 0, isNotDuplicable = 1 in
+def CONSTPOOL_ENTRY : Pseudo<(outs),
+                             (ins j2CPInstOperand:$id, j2CPInstOperand:$idx,
+                              i32imm:$size),
+                             "cpi", [], NoItinerary>;
+
 let isReturn = 1, isTerminator = 1, hasDelaySlot = 1, Uses = [ PR ] in {
   def RTS : FZERO<0xB, (outs), (ins), "rts", [ (J2Ret) ], NoItinerary>;
 }
@@ -81,6 +95,12 @@ def BT : FD<0x89, (outs), (ins j2BRATarget:$target),
             "bt\t$target", [ (brcond SR, bb:$target) ],
             NoItinerary>;
 }
+}
+
+let usesCustomInserter = 1 in {
+  def MOV32ir : Pseudo<(outs GPR:$rn), (ins i32imm:$imm),
+                       "mov\t$imm, r0", [ (set i32:$rn, imm:$imm) ],
+                       NoItinerary>;
 }
 
 def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
@@ -305,10 +325,17 @@ def MULrr0 : FN<0x4, 0x80, (outs GPR:$rnd), (ins GPR:$rns),
 def : Pat<(i32 (mulhu i32:$rm, i32:$rn)),
           (i32 (MULrr i32:$rm, i32:$rn))>;
 
-def : Pat<(i32 (J2Wrapper tglobaladdr:$in)), (MOV8ri tglobaladdr:$in)>;
 
-// Calling a target global addr, results in calling the global addr.
-def : Pat<(J2Call (J2Wrapper tglobaladdr:$in)), (BSR tglobaladdr:$in)>;
+let Uses = [ PC ] in {
+def MOV32PCR : FND8<0xD, (outs GPR:$rn), (ins i32imm:$addr),
+                    "mov.l\t@($addr, pc), $rn",
+                    [],
+                    NoItinerary>;
+}
+
+def : Pat<(load (J2Wrapper tconstpool:$src)), (MOV32PCR tconstpool:$src)>;
+
+def : Pat<(J2Wrapper tglobaladdr:$src), (MOV32PCR tconstpool:$src)>;
 
 let isCompare = 1, Defs = [ SR ] in { // Sets the T bit
 class CMP<bits<4> op, bits<4> data, string asmstr, CondCode CC>

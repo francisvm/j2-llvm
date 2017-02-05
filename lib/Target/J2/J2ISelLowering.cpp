@@ -13,11 +13,16 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2ISelLowering.h"
+#include "J2ConstantPoolValue.h"
 #include "J2TargetMachine.h"
 #include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include <algorithm>
 
 using namespace llvm;
+
+#define GET_INSTRINFO_ENUM
+#include "J2GenInstrInfo.inc"
 
 #include "J2GenCallingConv.inc"
 
@@ -68,6 +73,8 @@ SDValue J2TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   switch (Op.getOpcode()) {
   case ISD::GlobalAddress:
     return LowerGlobalAddress(Op, DAG);
+  case ISD::ConstantPool:
+    return LowerConstantPool(Op, DAG);
   case ISD::SHL:
     return LowerShift<J2ISD::SHL>(Op, DAG);
   case ISD::SRL:
@@ -79,12 +86,16 @@ SDValue J2TargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
 
 SDValue J2TargetLowering::LowerGlobalAddress(SDValue Op,
                                              SelectionDAG &DAG) const {
+  auto &MF = DAG.getMachineFunction();
   SDLoc DL{Op};
+  auto PtrVT = getPointerTy(DAG.getDataLayout());
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
-  auto Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
-  SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, Offset);
+  auto *CPV = J2ConstantPoolValue::Create(GV);
+  auto CP = DAG.getTargetConstantPool(CPV, PtrVT, 2);
+  CP = DAG.getNode(J2ISD::Wrapper, DL, MVT::i32, CP);
 
-  return DAG.getNode(J2ISD::Wrapper, DL, MVT::i32, GA);
+  return DAG.getLoad(PtrVT, DL, DAG.getEntryNode(), CP,
+                     MachinePointerInfo::getConstantPool(MF), 4);
 }
 
 // J2 supports logical shifts of 1, 2, 8 and 16 bits. In order to generate
@@ -216,7 +227,9 @@ J2TargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 
 SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                     SmallVectorImpl<SDValue> &InVals) const {
+
   SelectionDAG &DAG = CLI.DAG;
+  auto &MF = DAG.getMachineFunction();
   SDLoc &DL = CLI.DL;
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
   SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
@@ -231,7 +244,7 @@ SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   assert(!isVarArg && "Variable arguments not supported.");
 
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), ArgLocs,
+  CCState CCInfo(CallConv, isVarArg, MF, ArgLocs,
                  *DAG.getContext());
   CCInfo.AnalyzeCallOperands(Outs, CC_J2);
 
@@ -252,8 +265,8 @@ SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       RegsToPass.emplace_back(VA.getLocReg(), Arg);
     }
 
-    if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
-      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), DL, MVT::i32);
+    if (isa<GlobalAddressSDNode>(Callee))
+      Callee = LowerGlobalAddress(Callee, DAG);
     else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
       Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
   }
@@ -290,4 +303,52 @@ SDValue J2TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   }
 
   return Chain;
+}
+
+SDValue J2TargetLowering::LowerConstantPool(SDValue Op,
+                                            SelectionDAG &DAG) const {
+  EVT PtrVT = Op.getValueType();
+  SDLoc DL(Op);
+  auto *CP = cast<ConstantPoolSDNode>(Op);
+  SDValue Res = [&] {
+  if (CP->isMachineConstantPoolEntry())
+    return DAG.getTargetConstantPool(CP->getMachineCPVal(), PtrVT,
+                                     CP->getAlignment());
+  else
+    return DAG.getTargetConstantPool(CP->getConstVal(), PtrVT,
+                                     CP->getAlignment());
+  }();
+  return DAG.getNode(J2ISD::Wrapper, DL, MVT::i32, Res);
+}
+
+MachineBasicBlock *
+J2TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
+                                              MachineBasicBlock *MBB) const {
+  auto MF = MBB->getParent();
+  auto &Ctx = MF->getFunction()->getContext();
+  auto &TTI =
+      *static_cast<const J2Subtarget &>(MF->getSubtarget()).getInstrInfo();
+  switch (MI.getOpcode()) {
+  case J2::MOV32ir: {
+    switch (MI.getOperand(1).getType()) {
+    case MachineOperand::MO_Immediate: {
+      auto MBBI = MI.getIterator();
+      auto Pool = MF->getConstantPool();
+      auto Imm = MI.getOperand(1).getImm();
+      auto Constant = ConstantInt::getSigned(IntegerType::get(Ctx, 32), Imm);
+      auto CPI = Pool->getConstantPoolIndex(Constant, 4);
+      BuildMI(*MBB, MBBI, MBBI->getDebugLoc(), TTI.get(J2::MOV32PCR),
+              MI.getOperand(0).getReg())
+          .addConstantPoolIndex(CPI);
+      (MBBI++)->eraseFromParent();
+      return MBB;
+    }
+    default:
+      llvm_unreachable("Unexpected operand type for MOV32ir");
+    }
+    break;
+  }
+  default:
+    llvm_unreachable("Unexpected instr type to insert");
+  }
 }

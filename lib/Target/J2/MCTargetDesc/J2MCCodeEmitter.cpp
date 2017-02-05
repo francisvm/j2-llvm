@@ -76,6 +76,9 @@ unsigned J2MCCodeEmitter::getMachineOpValue(const MCInst &MI,
   case J2::BT:
     FixupKind = J2::fixup_J2_PC2_8;
     break;
+  case J2::MOV32PCR:
+    FixupKind = J2::fixup_J2_PC4_8;
+    break;
   default:
     llvm_unreachable("Opcode not handled.");
   }

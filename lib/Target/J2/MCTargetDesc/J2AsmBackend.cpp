@@ -21,6 +21,7 @@
 #include "llvm/MC/MCTargetOptions.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
@@ -43,7 +44,10 @@ protected:
       FIXUP(NONE);
       FIXUP(PC2_12);
       FIXUP(PC2_8);
+      FIXUP(PC4_8);
 #undef FIXUP
+    case FK_Data_4:
+      return ELF::R_J2_32;
     default:
       llvm_unreachable("Unkown fixup!");
     }
@@ -63,6 +67,7 @@ const MCFixupKindInfo &J2AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       {"fixup_J2_NONE",     0,     0,   0},
       {"fixup_J2_PC2_12",   4,     12,  MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_J2_PC2_8",    8,     8,   MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_J2_PC4_8",    8,     8,   MCFixupKindInfo::FKF_IsPCRel},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -96,8 +101,30 @@ void J2AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
   case J2::fixup_J2_PC2_8:
     applyDisplacement<8 /* Size */, 2 /* Multiply */>(Value, Data + Offset);
     break;
+  case J2::fixup_J2_PC4_8: {
+    applyDisplacement<8 /* Size */, 4 /* Multiply */>(Value, Data + Offset);
+    break;
+  }
+  case FK_Data_4:
+    *reinterpret_cast<uint32_t *>(Data + Offset) = Value / 4;
+    break;
   default:
     llvm_unreachable("Unkown fixup!");
+  }
+}
+
+void J2AsmBackend::processFixupValue(const MCAssembler &Asm,
+                                     const MCAsmLayout &Layout,
+                                     const MCFixup &Fixup, const MCFragment *DF,
+                                     const MCValue &Target, uint64_t &Value,
+                                     bool &IsResolved) {
+  switch ((unsigned)Fixup.getKind()) {
+  case J2::fixup_J2_PC4_8: {
+    Value = alignTo<4>(Value - 4);
+    break;
+  }
+  default:
+    break;
   }
 }
 

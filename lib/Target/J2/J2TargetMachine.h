@@ -46,6 +46,8 @@ public:
 
 FunctionPass *createJ2DelaySlotFillerPass(const J2TargetMachine & /*tm*/);
 
+FunctionPass *createJ2ConstantIslandPass();
+
 } // end namespace llvm
 
 #endif

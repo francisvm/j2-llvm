@@ -6,6 +6,8 @@
 # CHECK-NEXT:     0x0 R_J2_NONE - 0x0
 # CHECK-NEXT:     0x4 R_J2_PC2_12 - 0x0
 # CHECK-NEXT:     0x8 R_J2_PC2_8 - 0x0
+# CHECK-NEXT:     0xC R_J2_PC4_8 - 0x0
+# CHECK-NEXT:     0x10 R_J2_32 main 0x0
 # CHECK-NEXT:   }
 # CHECK-NEXT: ]
 
@@ -36,6 +38,12 @@ Sections:
       - Offset:          0x8
         Symbol:          c
         Type:            R_J2_PC2_8
+      - Offset:          0xC
+        Symbol:          d
+        Type:            R_J2_PC4_8
+      - Offset:          0x10
+        Symbol:          main
+        Type:            R_J2_32
 
 
 Symbols:

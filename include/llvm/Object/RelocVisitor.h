@@ -228,6 +228,14 @@ private:
           HasError = true;
           return RelocToApply();
         }
+      case Triple::j2:
+        switch (RelocType) {
+        case llvm::ELF::R_J2_32:
+          return visitELF_J2_32(R, Value);
+        default:
+          HasError = true;
+          return RelocToApply();
+        }
       default:
         HasError = true;
         return RelocToApply();
@@ -473,6 +481,13 @@ private:
     uint8_t Length = getLengthMachO64(R);
     Length = 1<<Length;
     return RelocToApply(Value, Length);
+  }
+
+  /// J2 ELF
+  RelocToApply visitELF_J2_32(RelocationRef R, uint64_t Value) {
+    int64_t Addend = getELFAddend(R);
+    uint32_t Res = (Value + Addend) & 0xFFFFFFFF;
+    return RelocToApply(Res, 4);
   }
 };
 

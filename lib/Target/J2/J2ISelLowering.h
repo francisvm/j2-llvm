@@ -72,8 +72,14 @@ public:
 
   SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 
+  SDValue LowerConstantPool(SDValue Op, SelectionDAG &DAG) const;
+
   template <enum J2ISD::NodeType Opcode>
   SDValue LowerShift(SDValue Op, SelectionDAG &DAG) const;
+
+  MachineBasicBlock *
+  EmitInstrWithCustomInserter(MachineInstr &MI,
+                              MachineBasicBlock *MBB) const override;
 };
 }
 
