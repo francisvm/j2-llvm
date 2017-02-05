@@ -20,6 +20,9 @@
 
 namespace llvm {
 class J2InstrInfo : public J2GenInstrInfo {
+  void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
+                   const DebugLoc &DL, unsigned DestReg, unsigned SrcReg,
+                   bool KillSrc) const override;
 };
 }
 

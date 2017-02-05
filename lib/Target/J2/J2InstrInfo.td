@@ -13,6 +13,12 @@ include "J2InstrFormats.td"
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
+// Describe LLVM IR constraints
+//===----------------------------------------------------------------------===//
+
+def i32immSExt8 : ImmLeaf<i32, [{ return isInt<8>(Imm); }]>;
+
+//===----------------------------------------------------------------------===//
 // Describe profiles and nodes
 //===----------------------------------------------------------------------===//
 
@@ -31,6 +37,37 @@ let isReturn = 1, isTerminator = 1, hasDelaySlot = 1, Uses = [ PR ] in {
   def RTS : FZERO<0xB, (outs), (ins), "rts", [ (J2Ret) ], NoItinerary>;
 }
 
+def MOV8ri : FNI<0xE, (outs GPR:$rn), (ins i32imm:$imm),
+                 "mov\t$imm, $rn", [ (set i32:$rn, i32immSExt8:$imm) ],
+                 NoItinerary>;
+
+def MOV32rr : FNM<0x6, 0x3, (outs GPR:$rn), (ins GPR:$rm),
+                  "mov\t$rm, $rn", [], NoItinerary>;
+
+let mayLoad = 1 in {
+def MOV8mr : FNM<0x6, 0x0, (outs GPR:$rn), (ins GPR:$rm),
+                 "mov.b\t@$rm, $rn",
+                 [ (set i32:$rn, (sextloadi8 i32:$rm)) ], NoItinerary>;
+def MOV16mr : FNM<0x6, 0x1, (outs GPR:$rn), (ins GPR:$rm),
+                  "mov.w\t@$rm, $rn",
+                  [ (set i32:$rn, (sextloadi16 i32:$rm)) ], NoItinerary>;
+def MOV32mr : FNM<0x6, 0x2, (outs GPR:$rn), (ins GPR:$rm),
+                  "mov.l\t@$rm, $rn",
+                  [ (set i32:$rn, (load i32:$rm)) ], NoItinerary>;
+}
+
+let mayStore = 1 in {
+def MOV8rm : FNM<0x2, 0x0, (outs), (ins GPR:$rm, GPR:$rn),
+                 "mov.b\t$rm, @$rn",
+                 [ (truncstorei8 i32:$rm, i32:$rn) ], NoItinerary>;
+def MOV16rm : FNM<0x2, 0x1, (outs), (ins GPR:$rm, GPR:$rn),
+                  "mov.w\t$rm, @$rn",
+                  [ (truncstorei16 i32:$rm, i32:$rn) ], NoItinerary>;
+def MOV32rm : FNM<0x2, 0x2, (outs), (ins GPR:$rm, GPR:$rn),
+                  "mov.l\t$rm, @$rn",
+                  [ (store i32:$rm, i32:$rn) ], NoItinerary>;
+}
+
 let isCommutable = 1, Constraints = "$rnd = $rns", isAdd = 1 in {
 def ADDrr : FNM<0x3, 0xC, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
                 "add\t$rm, $rnd",
@@ -47,3 +84,37 @@ def SUBrr : FNM<0x3, 0xB, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
                 [ (set i32:$rnd, (sub i32:$rm, i32:$rns)) ],
                 NoItinerary>;
 }
+
+let Defs = [ MAC ] in {
+def CLRMAC : FZERO<0x28, (outs), (ins),
+                   "clrmac",
+                   [ (set MAC, (i64 0)) ],
+                   NoItinerary>;
+}
+
+class ST<string type, bits<8> data, string regname, Register reg>
+  : FN<0x0, data, (outs GPR:$rn), (ins),
+       "st"#type#"\t"#regname#", $rn", [], NoItinerary> {
+         let Defs = [ reg ];
+}
+
+class LD<string type, bits<8> data, string regname, Register reg>
+  : FN<0x4, data, (outs), (ins GPR:$rm),
+       "ld"#type#"\t$rm, "#regname, [], NoItinerary> {
+         let Uses = [ reg ];
+}
+
+def STSMACH : ST<"s", 0xA, "mach", MACH>;
+def LDSMACH : LD<"s", 0xA, "mach", MACH>;
+
+def STSMACL : ST<"s", 0x1A, "macl", MACL>;
+def LDSMACL : LD<"s", 0x1A, "macl", MACL>;
+
+def STSPR : ST<"s", 0x2A, "pr", PR>;
+def LDSPR : LD<"s", 0x2A, "pr", PR>;
+
+def STCGBR : ST<"c", 0x12, "gbr", GBR>;
+def LDCGBR : LD<"c", 0x12, "gbr", GBR>;
+
+def STCVBR : ST<"c", 0x22, "vbr", VBR>;
+def LDCVBR : LD<"c", 0x22, "vbr", VBR>;
