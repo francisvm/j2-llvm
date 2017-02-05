@@ -17,6 +17,7 @@
 
 [common]
 subdirectories =
+  InstPrinter
   MCTargetDesc
   TargetInfo
 
@@ -25,7 +26,7 @@ type = TargetGroup
 name = J2
 parent = Target
 has_asmparser = 0
-has_asmprinter = 0
+has_asmprinter = 1
 has_disassembler = 0
 has_jit = 0
 
@@ -34,8 +35,10 @@ type = Library
 name = J2CodeGen
 parent = J2
 required_libraries =
+  AsmPrinter
   CodeGen
   Core
+  J2AsmPrinter
   J2Desc
   J2Info
   MC
