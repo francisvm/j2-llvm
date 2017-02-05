@@ -31,6 +31,19 @@ void J2DAGToDAGISel::Select(SDNode *Node) {
   // Dump information about the Node being selected
   DEBUG(errs() << "Selecting: "; Node->dump(CurDAG); errs() << "\n");
 
+  SDLoc DL(Node);
+
+  switch (Node->getOpcode()) {
+  case ISD::FrameIndex:
+    assert(Node->getValueType(0) == MVT::i32);
+
+    int FI = cast<FrameIndexSDNode>(Node)->getIndex();
+    SDValue TFI = CurDAG->getTargetFrameIndex(FI, MVT::i32);
+    const auto Opc = J2::MOV32rr;
+    CurDAG->SelectNodeTo(Node, Opc, MVT::i32, TFI);
+    return;
+  }
+
   // Select the default instruction
   SelectCode(Node);
 }

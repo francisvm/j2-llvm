@@ -21,6 +21,8 @@
 #include "J2GenRegisterInfo.inc"
 
 namespace llvm {
+class MachineFrameInfo;
+
 struct J2RegisterInfo : public J2GenRegisterInfo {
 public:
   J2RegisterInfo();
@@ -37,6 +39,8 @@ public:
   void eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                            unsigned FIOperandNum,
                            RegScavenger *RS = nullptr) const override;
+private:
+  bool isCalleeSavedIndex(int FrameIdx, MachineFrameInfo &MFI) const;
 };
 } // end namespace llvm
 

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2InstrInfo.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 
 using namespace llvm;
@@ -72,4 +73,27 @@ void J2InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
     BuildMI(MBB, MI, DL, get(Opc)).addReg(SrcReg, getKillRegState(KillSrc));
   }
 
+}
+
+void J2InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
+                                      MachineBasicBlock::iterator MI,
+                                      unsigned SrcReg, bool isKill,
+                                      int FrameIndex,
+                                      const TargetRegisterClass *RC,
+                                      const TargetRegisterInfo *TRI) const {
+  DebugLoc DL = MI != MBB.end() ? MI->getDebugLoc() : DebugLoc();
+
+  BuildMI(MBB, MI, DL, get(J2::MOV32rm))
+      .addReg(SrcReg, getKillRegState(isKill))
+      .addFrameIndex(FrameIndex);
+}
+
+void J2InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                       MachineBasicBlock::iterator MI,
+                                       unsigned DstReg, int FrameIndex,
+                                       const TargetRegisterClass *RC,
+                                       const TargetRegisterInfo *TRI) const {
+  DebugLoc DL = MI != MBB.end() ? MI->getDebugLoc() : DebugLoc();
+
+  BuildMI(MBB, MI, DL, get(J2::MOV32mr), DstReg).addFrameIndex(FrameIndex);
 }
