@@ -42,6 +42,7 @@ required_libraries =
   J2Desc
   J2Info
   MC
+  SelectionDAG
   Support
   Target
 

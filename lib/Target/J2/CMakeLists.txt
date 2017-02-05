@@ -9,6 +9,8 @@ add_public_tablegen_target(J2CommonTableGen)
 
 add_llvm_target(J2CodeGen
   J2AsmPrinter.cpp
+  J2FrameLowering.cpp
+  J2ISelLowering.cpp
   J2InstrInfo.cpp
   J2RegisterInfo.cpp
   J2Subtarget.cpp
