@@ -15,6 +15,7 @@ add_llvm_target(J2CodeGen
   J2ISelDAGToDAG.cpp
   J2ISelLowering.cpp
   J2InstrInfo.cpp
+  J2MCInstLower.cpp
   J2RegisterInfo.cpp
   J2Subtarget.cpp
   J2TargetMachine.cpp
