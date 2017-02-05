@@ -25,7 +25,8 @@ include "J2RegisterInfo.td"
 // Instructions File
 //===----------------------------------------------------------------------===//
 
-// FIXME: Define instructions.
+include "J2InstrInfo.td"
+def J2InstrInfo : InstrInfo;
 
 //===----------------------------------------------------------------------===//
 // J2 processors supported.
@@ -38,5 +39,5 @@ include "J2RegisterInfo.td"
 //===----------------------------------------------------------------------===//
 
 def J2 : Target {
-  // FIXME: InstructionSet.
+  let InstructionSet = J2InstrInfo;
 }

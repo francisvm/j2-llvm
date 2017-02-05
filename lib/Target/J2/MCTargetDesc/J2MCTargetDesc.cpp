@@ -24,9 +24,18 @@ using namespace llvm;
 #define GET_REGINFO_ENUM
 #include "J2GenRegisterInfo.inc"
 
+#define GET_INSTRINFO_MC_DESC
+#include "J2GenInstrInfo.inc"
+
 static MCRegisterInfo *createJ2MCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
   InitJ2MCRegisterInfo(X, J2::PR);
+  return X;
+}
+
+static MCInstrInfo *createJ2MCInstrInfo() {
+  MCInstrInfo *X = new MCInstrInfo();
+  InitJ2MCInstrInfo(X);
   return X;
 }
 
@@ -34,4 +43,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
   Target *T = &getTheJ2Target();
   // Register the MC register info.
   TargetRegistry::RegisterMCRegInfo(*T, createJ2MCRegisterInfo);
+
+  // Register the MC instruction info.
+  TargetRegistry::RegisterMCInstrInfo(*T, createJ2MCInstrInfo);
 }
