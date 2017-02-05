@@ -14,6 +14,7 @@
 #ifndef LLVM_LIB_TARGET_J2_J2TARGETMACHINE_H
 #define LLVM_LIB_TARGET_J2_J2TARGETMACHINE_H
 
+#include "J2Subtarget.h"
 #include "llvm/Target/TargetMachine.h"
 #include <memory>
 
@@ -21,6 +22,7 @@ namespace llvm {
 
 class J2TargetMachine : public LLVMTargetMachine {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
+  J2Subtarget Subtarget;
 
 public:
   J2TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
@@ -32,6 +34,10 @@ public:
 
   TargetLoweringObjectFile *getObjFileLowering() const override {
     return TLOF.get();
+  }
+
+  const J2Subtarget *getSubtargetImpl(const Function &F) const override {
+    return &Subtarget;
   }
 };
 
