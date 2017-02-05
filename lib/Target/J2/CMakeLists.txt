@@ -4,6 +4,7 @@ tablegen(LLVM J2GenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM J2GenCallingConv.inc -gen-callingconv)
 tablegen(LLVM J2GenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM J2GenInstrInfo.inc -gen-instr-info)
+tablegen(LLVM J2GenMCCodeEmitter.inc -gen-emitter)
 tablegen(LLVM J2GenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM J2GenSubtargetInfo.inc -gen-subtarget)
 
