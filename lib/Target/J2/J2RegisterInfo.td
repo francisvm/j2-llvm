@@ -86,3 +86,8 @@ def MACR : RegisterClass<"J2", [ i64 ], 64, (add MAC)> {
   let CopyCost = -1;
   let isAllocatable = 0;
 }
+
+def PCR : RegisterClass<"J2", [ i32 ], 32, (add PC)> {
+  let CopyCost = -1;
+  let isAllocatable = 0;
+}

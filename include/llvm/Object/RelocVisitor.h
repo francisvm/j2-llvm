@@ -80,6 +80,8 @@ private:
         return visitSparc64(Rel, R, Value);
       case Triple::amdgcn:
         return visitAmdgpu(Rel, R, Value);
+      case Triple::j2:
+        return visitJ2(Rel, R, Value);
       default:
         HasError = true;
         return 0;
@@ -281,6 +283,13 @@ private:
   uint64_t visitHexagon(uint32_t Rel, RelocationRef R, uint64_t Value) {
     if (Rel == ELF::R_HEX_32)
       return Value + getELFAddend(R);
+    HasError = true;
+    return 0;
+  }
+
+  uint64_t visitJ2(uint32_t Rel, RelocationRef R, uint64_t Value) {
+    if (Rel == ELF::R_J2_32)
+      return (Value + getELFAddend(R)) & 0xFFFFFFFF;
     HasError = true;
     return 0;
   }

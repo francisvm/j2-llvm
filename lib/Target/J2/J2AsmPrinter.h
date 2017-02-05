@@ -29,6 +29,10 @@ public:
   void EmitInstruction(const MachineInstr *MI) override;
 
   void EmitFunctionEntryLabel() override;
+
+  void EmitMachineConstantPoolValue(MachineConstantPoolValue *MCPV) override;
+
+  void EmitConstantPool() override { /* Emitted customly. */ }
 };
 
 } // namespace llvm

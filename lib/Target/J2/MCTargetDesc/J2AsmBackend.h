@@ -41,6 +41,9 @@ public:
                   const MCValue &Target, MutableArrayRef<char> Data,
                   uint64_t Value, bool IsResolved) const override;
 
+  void adjustFixupValue(const MCFixup &Fixup, const MCValue &Target,
+                        uint64_t &Value, MCContext *Ctx = nullptr) const;
+
   unsigned getNumFixupKinds() const override { return J2::NumTargetFixupKinds; }
 
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
