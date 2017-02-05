@@ -1,5 +1,6 @@
 set(LLVM_TARGET_DEFINITIONS J2.td)
 
+tablegen(LLVM J2GenAsmMatcher.inc -gen-asm-matcher)
 tablegen(LLVM J2GenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM J2GenCallingConv.inc -gen-callingconv)
 tablegen(LLVM J2GenDAGISel.inc -gen-dag-isel)
@@ -23,6 +24,7 @@ add_llvm_target(J2CodeGen
   J2TargetObjectFile.cpp
   )
 
+add_subdirectory(AsmParser)
 add_subdirectory(InstPrinter)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)

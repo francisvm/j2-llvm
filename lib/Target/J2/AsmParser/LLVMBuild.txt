@@ -15,36 +15,15 @@
 ;
 ;===------------------------------------------------------------------------===;
 
-[common]
-subdirectories =
-  AsmParser
-  InstPrinter
-  MCTargetDesc
-  TargetInfo
-
 [component_0]
-type = TargetGroup
-name = J2
-parent = Target
-has_asmparser = 1
-has_asmprinter = 1
-has_disassembler = 0
-has_jit = 0
-
-[component_1]
 type = Library
-name = J2CodeGen
+name = J2AsmParser
 parent = J2
 required_libraries =
-  AsmPrinter
-  CodeGen
-  Core
-  J2AsmPrinter
   J2Desc
   J2Info
   MC
-  SelectionDAG
+  MCParser
   Support
-  Target
 
 add_to_library_groups = J2
