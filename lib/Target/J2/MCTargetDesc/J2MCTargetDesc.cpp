@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "J2MCTargetDesc.h"
+#include "InstPrinter/J2InstPrinter.h"
 #include "J2MCAsmInfo.h"
 #include "J2TargetStreamer.h"
 #include "llvm/ADT/STLExtras.h"
@@ -58,6 +59,14 @@ createJ2ObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI) {
   return new J2TargetELFStreamer(S);
 }
 
+static MCInstPrinter *createJ2MCInstPrinter(const Triple &T,
+                                            unsigned SyntaxVariant,
+                                            const MCAsmInfo &MAI,
+                                            const MCInstrInfo &MII,
+                                            const MCRegisterInfo &MRI) {
+  return new J2InstPrinter(MAI, MII, MRI);
+}
+
 extern "C" void LLVMInitializeJ2TargetMC() {
   Target *T = &TheJ2Target;
   // Register the MC register info.
@@ -74,4 +83,7 @@ extern "C" void LLVMInitializeJ2TargetMC() {
   // Register the object target streamer.
   TargetRegistry::RegisterObjectTargetStreamer(*T,
                                                createJ2ObjectTargetStreamer);
+
+  // Register the MCInstPrinter.
+  TargetRegistry::RegisterMCInstPrinter(*T, createJ2MCInstPrinter);
 }
