@@ -34,7 +34,10 @@ def J2InstrInfo : InstrInfo;
 // J2 processors supported.
 //===----------------------------------------------------------------------===//
 
-// FIXME: Define processors.
+include "J2Schedule.td"
+
+// FIXME: Add scheduling.
+def : ProcessorModel<"j2", NoSchedModel, []>;
 
 //===----------------------------------------------------------------------===//
 // The target.
