@@ -20,6 +20,30 @@
 
 using namespace llvm;
 
+MCOperand J2MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
+                                            MCSymbol *Sym) const {
+  const MCExpr *Expr = MCSymbolRefExpr::create(Sym, Printer.OutContext);
+
+  // FIXME: Target flags ?
+
+  if (MO.getOffset())
+    Expr = MCBinaryExpr::createAdd(
+        Expr, MCConstantExpr::create(MO.getOffset(), Printer.OutContext),
+        Printer.OutContext);
+
+  return MCOperand::createExpr(Expr);
+}
+
+MCSymbol *
+J2MCInstLower::GetGlobalAddressSymbol(const MachineOperand &MO) const {
+  return Printer.getSymbol(MO.getGlobal());
+}
+
+MCSymbol *
+J2MCInstLower::GetExternalSymbolSymbol(const MachineOperand &MO) const {
+  return Printer.GetExternalSymbolSymbol(MO.getSymbolName());
+}
+
 MCOperand J2MCInstLower::LowerOperand(const MachineOperand &MO) const {
   MachineOperandType MOTy = MO.getType();
 
@@ -34,6 +58,10 @@ MCOperand J2MCInstLower::LowerOperand(const MachineOperand &MO) const {
     return MCOperand::createReg(MO.getReg());
   case MachineOperand::MO_Immediate:
     return MCOperand::createImm(MO.getImm());
+  case MachineOperand::MO_GlobalAddress:
+    return LowerSymbolOperand(MO, GetGlobalAddressSymbol(MO));
+  case MachineOperand::MO_ExternalSymbol:
+    return LowerSymbolOperand(MO, GetExternalSymbolSymbol(MO));
   }
 
   return MCOperand();
