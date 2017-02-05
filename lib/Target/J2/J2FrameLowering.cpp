@@ -25,7 +25,7 @@ using namespace llvm;
 void J2FrameLowering::emitPrologue(MachineFunction &MF,
                                    MachineBasicBlock &MBB) const {
   auto &MFI = MF.getFrameInfo();
-  auto StackSize = MFI.getStackSize();
+  auto StackSize = MFI.getStackSize() - MFI.getCalleeSavedInfo().size() * 4;
   auto &TTI =
       *static_cast<const J2Subtarget &>(MF.getSubtarget()).getInstrInfo();
 
@@ -60,7 +60,7 @@ void J2FrameLowering::emitPrologue(MachineFunction &MF,
 void J2FrameLowering::emitEpilogue(MachineFunction &MF,
                                    MachineBasicBlock &MBB) const {
   auto &MFI = MF.getFrameInfo();
-  auto StackSize = MFI.getStackSize();
+  auto StackSize = MFI.getStackSize() - MFI.getCalleeSavedInfo().size() * 4;
   auto &TTI =
       *static_cast<const J2Subtarget &>(MF.getSubtarget()).getInstrInfo();
 
@@ -85,7 +85,54 @@ void J2FrameLowering::determineCalleeSaves(MachineFunction &MF,
                                            BitVector &SavedRegs,
                                            RegScavenger *RS) const {
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+
   // Spill FP, so that it can be reused after a function call.
   if (hasFP(MF))
     SavedRegs.set(J2::R14);
+}
+
+bool J2FrameLowering::spillCalleeSavedRegisters(
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
+    const std::vector<CalleeSavedInfo> &CSI,
+    const TargetRegisterInfo *TRI) const {
+  if (CSI.empty())
+    return false;
+
+  DebugLoc DL;
+  if (MI != MBB.end())
+    DL = MI->getDebugLoc();
+
+  MachineFunction &MF = *MBB.getParent();
+  const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
+
+  for (unsigned i = CSI.size(); i != 0; --i) {
+    unsigned Reg = CSI[i - 1].getReg();
+    // Add the callee-saved register as live-in. It's killed at the spill.
+    MBB.addLiveIn(Reg);
+    BuildMI(MBB, MI, DL, TII.get(J2::MOV32rmpush), J2::R15)
+        .addReg(Reg)
+        .addReg(Reg, RegState::Kill);
+  }
+  return true;
+}
+
+bool J2FrameLowering::restoreCalleeSavedRegisters(
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
+    const std::vector<CalleeSavedInfo> &CSI,
+    const TargetRegisterInfo *TRI) const {
+  if (CSI.empty())
+    return false;
+
+  DebugLoc DL;
+  if (MI != MBB.end())
+    DL = MI->getDebugLoc();
+
+  MachineFunction &MF = *MBB.getParent();
+  const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
+
+  for (unsigned i = 0, e = CSI.size(); i != e; ++i)
+    BuildMI(MBB, MI, DL, TII.get(J2::MOV32mrpop), CSI[i].getReg())
+        .addReg(J2::R15);
+
+  return true;
 }
