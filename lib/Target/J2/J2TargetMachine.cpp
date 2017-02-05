@@ -55,6 +55,10 @@ TargetPassConfig *J2TargetMachine::createPassConfig(PassManagerBase &PM) {
       addPass(new J2DAGToDAGISel(getJ2TargetMachine()));
       return false;
     }
+
+    void addPreEmitPass() override {
+      addPass(createJ2DelaySlotFillerPass(getJ2TargetMachine()));
+    }
   };
 
   return new J2PassConfig(this, PM);

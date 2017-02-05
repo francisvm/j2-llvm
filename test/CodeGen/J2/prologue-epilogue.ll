@@ -15,4 +15,5 @@ entry:
 ; CHECK-NEXT: mov r14, r15
 ; CHECK-NEXT: mov.l @r15, r14
 ; CHECK-NEXT: rts
+; CHECK-NEXT: nop
 }
