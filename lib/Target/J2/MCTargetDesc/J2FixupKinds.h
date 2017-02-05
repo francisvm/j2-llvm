@@ -18,6 +18,9 @@ enum Fixups {
   // Branch fixups resulting in R_J2_NONE.
   fixup_J2_NONE = FirstTargetFixupKind,
 
+  // 12-bit displacement, multiplied by 2.
+  fixup_J2_PC2_12,
+
   // Marker
   LastTargetFixupKind,
   NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
