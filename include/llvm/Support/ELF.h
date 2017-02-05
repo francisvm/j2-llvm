@@ -315,6 +315,8 @@ enum {
   // such numbers for an official value for WebAssembly. As soon as one is
   // allocated, this enum will be updated to use it.
   EM_WEBASSEMBLY = 0x4157, // WebAssembly architecture
+
+  EM_J2 = 999, // J2 core architecture
 };
 
 // Object file classes.
@@ -615,6 +617,11 @@ enum {
 // ELF Relocation types for BPF
 enum {
 #include "ELFRelocs/BPF.def"
+};
+
+// ELF Relocation types for J2
+enum {
+#include "ELFRelocs/J2.def"
 };
 
 #undef ELF_RELOC

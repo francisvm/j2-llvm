@@ -132,6 +132,13 @@ StringRef getELFRelocationTypeName(uint32_t Machine, uint32_t Type) {
       break;
     }
     break;
+  case ELF::EM_J2:
+    switch (Type) {
+#include "llvm/Support/ELFRelocs/J2.def"
+    default:
+      break;
+    }
+    break;
   default:
     break;
   }
