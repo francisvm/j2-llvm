@@ -11,6 +11,7 @@ RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.elf-lanai    | FileChec
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.elf-mips     | FileCheck %s -check-prefix ELF-MIPS
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.elf-mips64el | FileCheck %s -check-prefix ELF-MIPS64EL
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.elf-ppc64    | FileCheck %s -check-prefix ELF-PPC64
+RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.elf-j2       | FileCheck %s -check-prefix ELF-J2
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.coff-i386    | FileCheck %s -check-prefix COFF-32
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.coff-x86_64  | FileCheck %s -check-prefix COFF-64
 RUN: llvm-readobj -r -expand-relocs %p/Inputs/relocs.obj.macho-arm    | FileCheck %s -check-prefix MACHO-ARM
@@ -605,6 +606,8 @@ ELF-HEXAGON: Type: R_HEX_IE_GOT_11_X (82)
 ELF-HEXAGON: Type: R_HEX_TPREL_32_6_X (83)
 ELF-HEXAGON: Type: R_HEX_TPREL_16_X (84)
 ELF-HEXAGON: Type: R_HEX_TPREL_11_X (85)
+
+ELF-J2: Type: R_J2_NONE (0)
 
 COFF-32: Type: IMAGE_REL_I386_ABSOLUTE (0)
 COFF-32: Type: IMAGE_REL_I386_DIR16 (1)

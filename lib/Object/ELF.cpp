@@ -146,6 +146,13 @@ StringRef llvm::object::getELFRelocationTypeName(uint32_t Machine,
       break;
     }
     break;
+  case ELF::EM_J2:
+    switch (Type) {
+#include "llvm/BinaryFormat/ELFRelocs/J2.def"
+    default:
+      break;
+    }
+    break;
   default:
     break;
   }
