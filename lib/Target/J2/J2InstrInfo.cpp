@@ -97,3 +97,40 @@ void J2InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 
   BuildMI(MBB, MI, DL, get(J2::MOV32mr), DstReg).addFrameIndex(FrameIndex);
 }
+
+unsigned J2InstrInfo::insertBranch(MachineBasicBlock &MBB,
+                                   MachineBasicBlock *TBB,
+                                   MachineBasicBlock *FBB,
+                                   ArrayRef<MachineOperand> Cond,
+                                 const DebugLoc &DL, int *BytesAdded) const {
+assert(!BytesAdded && "code size not handled");
+
+  // Unconditional branch
+  if (Cond.empty()) {
+    assert(!FBB && "Unconditional branch with multiple successors!");
+    BuildMI(&MBB, DL, get(J2::BRA)).addMBB(TBB);
+    return 1;
+  }
+
+  llvm_unreachable("Unexpected conditional branch");
+}
+
+unsigned J2InstrInfo::removeBranch(MachineBasicBlock &MBB,
+                                   int *BytesRemoved) const {
+  assert(!BytesRemoved && "code size not handled");
+
+  MachineBasicBlock::iterator I = MBB.end();
+  unsigned Count = 0;
+
+  while (I != MBB.begin()) {
+    --I;
+    if (I->getOpcode() != J2::BRA)
+      break;
+    // Remove the branch.
+    I->eraseFromParent();
+    I = MBB.end();
+    ++Count;
+  }
+
+  return Count;
+}

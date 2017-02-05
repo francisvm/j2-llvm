@@ -62,6 +62,9 @@ MCOperand J2MCInstLower::LowerOperand(const MachineOperand &MO) const {
     return LowerSymbolOperand(MO, GetGlobalAddressSymbol(MO));
   case MachineOperand::MO_ExternalSymbol:
     return LowerSymbolOperand(MO, GetExternalSymbolSymbol(MO));
+  case MachineOperand::MO_MachineBasicBlock:
+    return MCOperand::createExpr(
+        MCSymbolRefExpr::create(MO.getMBB()->getSymbol(), Ctx));
   }
 
   return MCOperand();
