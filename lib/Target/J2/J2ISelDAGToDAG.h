@@ -45,6 +45,9 @@ protected:
 #include "J2GenDAGISel.inc"
 
   void Select(SDNode *N) override;
+
+  template <size_t N>
+  bool SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset);
 };
 }
 

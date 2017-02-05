@@ -41,3 +41,15 @@ void J2InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
     O << *Op.getExpr();
   }
 }
+
+void J2InstPrinter::printMemOperand(const MCInst *MI, int OpNo, raw_ostream &O,
+                                    const char *Modifier) {
+  const MCOperand &RegOp = MI->getOperand(OpNo);
+  const MCOperand &OffsetOp = MI->getOperand(OpNo + 1);
+
+  assert(OffsetOp.isImm() && "Expected an immediate");
+  assert(RegOp.isReg() && "Register operand not a register");
+
+  O << '(' << formatImm(OffsetOp.getImm()) << ", "
+    << getRegisterName(RegOp.getReg()) << ')';
+}
