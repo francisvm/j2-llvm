@@ -32,6 +32,19 @@ def j2PCMemOperand : Operand<i32> {
   let MIOperandInfo = (ops PCR, i32imm);
 }
 
+class DisplacementAsmOperand<string name> : AsmOperandClass {
+  let Name = name;
+  let RenderMethod = "addDispOperands";
+}
+
+class PCRelAsmOperand<string size>
+  : DisplacementAsmOperand<"PCRel"##size> {
+  let PredicateMethod = "isDisp"
+  let ParserMethod = "parsePCRel"##size;
+}
+
+def PCRel12 : PCRelAsmOperand<"12">;
+
 // Operand for CONSTPOOL_ENTRY pseudo-instruction.
 def j2CPInstOperand : Operand<i32>;
 

@@ -35,6 +35,7 @@ struct J2Operand : public MCParsedAsmOperand {
     Token,
     Register,
     Immediate,
+    Memory,
   } Kind;
 
   struct TokOp {
@@ -50,12 +51,32 @@ struct J2Operand : public MCParsedAsmOperand {
     const MCExpr *Val;
   };
 
+  struct MemOp {
+    unsigned Base;
+
+    enum MemOpType {
+      None,   // No extra operand.
+      Disp4,  // 4-bit displacement.
+      Disp8,  // 8-bit displacement.
+      Disp12, // 12-bit displacement.
+      Plus,   // No displacement, but increment.
+      Minus,  // No displacement, but decrement.
+    } OpType;
+
+    union {
+      uint8_t disp4;
+      uint8_t disp8;
+      uint16_t disp12;
+    };
+  };
+
   SMLoc StartLoc, EndLoc;
 
   union {
     TokOp Tok;
     RegOp Reg;
     ImmOp Imm;
+    MemOp Mem;
   };
 
   J2Operand(KindTy K) : MCParsedAsmOperand{}, Kind{K} {}
@@ -75,14 +96,16 @@ struct J2Operand : public MCParsedAsmOperand {
     case Token:
       Tok = o.Tok;
       break;
+    case Memory:
+      Mem = o.Mem;
+      break;
     }
   }
 
   bool isToken() const override { return Kind == Token; }
   bool isReg() const override { return Kind == Register; }
   bool isImm() const override { return Kind == Immediate; }
-  // FIXME: Mem.
-  bool isMem() const override { return false; }
+  bool isMem() const override { return Kind == Memory; }
 
   /// getStartLoc - Gets location of the first token of this operand
   SMLoc getStartLoc() const override { return StartLoc; }
@@ -104,6 +127,10 @@ struct J2Operand : public MCParsedAsmOperand {
       break;
     case Token:
       OS << "'" << StringRef{Tok.Data, Tok.Length} << "'";
+      break;
+    case Memory:
+      // FIXME: Print disp.
+      OS << "<memory @r" << Mem.Base;
       break;
     }
   }
@@ -152,11 +179,15 @@ struct J2Operand : public MCParsedAsmOperand {
 
 class J2AsmParser : public MCTargetAsmParser {
   const MCSubtargetInfo &STI;
+  MCAsmParser &Parser;
+
+#define GET_ASSEMBLER_HEADER
+#include "J2GenAsmMatcher.inc"
 
 public:
   J2AsmParser(const MCSubtargetInfo &STIIN, MCAsmParser &P,
               const MCInstrInfo &MII, const MCTargetOptions &Options)
-      : MCTargetAsmParser(Options, STIIN), STI{STIIN} {}
+      : MCTargetAsmParser(Options, STIIN), STI{STIIN}, Parser{P} {}
 
   bool ParseRegister(unsigned &RegNo, SMLoc &StartLoc, SMLoc &EndLoc) override {
     MCAsmParser &Parser = getParser();
@@ -166,21 +197,70 @@ public:
     EndLoc = Tok.getEndLoc();
 
     if (Tok.isNot(AsmToken::Identifier))
-      return Error(StartLoc, "invalid register name");
+      return true;
 
     RegNo = MatchRegisterName(Tok.getIdentifier());
 
     if (RegNo == 0)
-      return Error(StartLoc, "invalid register name");
+      return true;
 
     Parser.Lex();
     return false;
   }
 
+  bool tryParseRegisterOperand(OperandVector &Operands) {
+    unsigned RegNo = 0;
+    SMLoc StartLoc;
+    SMLoc EndLoc;
+    if (ParseRegister(RegNo, StartLoc, EndLoc))
+      return true;
+
+    if (RegNo == J2::NoRegister)
+      return true;
+
+    const AsmToken &T = Parser.getTok();
+    Operands.push_back(J2Operand::createReg(RegNo, T.getLoc(), T.getEndLoc()));
+    Parser.Lex();
+
+    return false;
+  }
+
+  bool ParseOperand(OperandVector &Operands, StringRef Mnemonic) {
+    OperandMatchResultTy ResTy = MatchOperandParserImpl(Operands, Mnemonic);
+    if (ResTy == MatchOperand_Success)
+      return false;
+    if (ResTy == MatchOperand_ParseFail)
+      return true;
+    return false;
+  }
+
   bool ParseInstruction(ParseInstructionInfo &Info, StringRef Name,
                         SMLoc NameLoc, OperandVector &Operands) override {
-    // FIXME: Implement.
-    return true;
+
+    // First operand in MCInst is instruction mnemonic.
+    Operands.push_back(J2Operand::createToken(Name, NameLoc));
+
+    while (getLexer().isNot(AsmToken::EndOfStatement)) {
+      if (ParseOperand(Operands, Name))
+        return true;
+
+      while (getLexer().is(AsmToken::Comma)) {
+        Parser.Lex();
+        if (ParseOperand(Operands, Name))
+          return true;
+
+        if (getLexer().isNot(AsmToken::EndOfStatement))
+          return Error(getLexer().getLoc(), "unexpected token in argument list");
+      }
+    }
+
+    // Lex EndOfStatement.
+    Parser.Lex();
+    return false;
+  }
+
+  OperandMatchResultTy parsePCMemOperand(OperandVector &Operands) {
+    return false;
   }
 
   bool ParseDirective(AsmToken DirectiveID) override {
@@ -206,9 +286,6 @@ public:
       return Error(IDLoc, "parse error");
     }
   }
-
-#define GET_ASSEMBLER_HEADER
-#include "J2GenAsmMatcher.inc"
 };
 
 extern "C" void LLVMInitializeJ2AsmParser() {
