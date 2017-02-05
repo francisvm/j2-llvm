@@ -28,7 +28,9 @@ include "J2CallingConv.td"
 //===----------------------------------------------------------------------===//
 
 include "J2InstrInfo.td"
-def J2InstrInfo : InstrInfo;
+def J2InstrInfo : InstrInfo {
+  let decodePositionallyEncodedOperands = 1;
+}
 
 //===----------------------------------------------------------------------===//
 // J2 processors supported.
