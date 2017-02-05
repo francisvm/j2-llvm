@@ -42,6 +42,7 @@ protected:
     switch ((unsigned)Fixup.getKind()) {
       FIXUP(NONE);
       FIXUP(PC2_12);
+      FIXUP(PC2_8);
 #undef FIXUP
     default:
       llvm_unreachable("Unkown fixup!");
@@ -62,6 +63,7 @@ const MCFixupKindInfo &J2AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       // Name               offset size flags
       {"fixup_J2_NONE",     0,     0,   0},
       {"fixup_J2_PC2_12",   4,     12,  MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_J2_PC2_8",    8,     8,   MCFixupKindInfo::FKF_IsPCRel},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -95,6 +97,10 @@ void J2AsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
   case J2::fixup_J2_PC2_12:
     applyDisplacement<12 /* Size */, 2 /* Multiply */>(Value,
                                                        Data.slice(Offset));
+    break;
+  case J2::fixup_J2_PC2_8:
+    applyDisplacement<8 /* Size */, 2 /* Multiply */>(Value,
+                                                      Data.slice(Offset));
     break;
   default:
     llvm_unreachable("Unkown fixup!");

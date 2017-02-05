@@ -5,6 +5,7 @@
 # CHECK-NEXT:   Section (2) .rel.text {
 # CHECK-NEXT:     0x0 R_J2_NONE - 0x0
 # CHECK-NEXT:     0x4 R_J2_PC2_12 - 0x0
+# CHECK-NEXT:     0x8 R_J2_PC2_8 - 0x0
 # CHECK-NEXT:   }
 # CHECK-NEXT: ]
 
@@ -32,6 +33,9 @@ Sections:
       - Offset:          0x4
         Symbol:          b
         Type:            R_J2_PC2_12
+      - Offset:          0x8
+        Symbol:          c
+        Type:            R_J2_PC2_8
 
 
 Symbols:
