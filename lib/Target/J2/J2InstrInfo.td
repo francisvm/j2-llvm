@@ -120,6 +120,12 @@ def MOV16mr : FNM<0x6, 0x1, (outs GPR:$rn), (ins GPR:$rm),
 def MOV32mr : FNM<0x6, 0x2, (outs GPR:$rn), (ins GPR:$rm),
                   "mov.l\t@$rm, $rn",
                   [ (set i32:$rn, (load i32:$rm)) ], NoItinerary>;
+
+let Constraints = "$rnd = $rns" in {
+def MOV32rmpush : FNM<0x2, 0x6, (outs GPR:$rnd), (ins GPR:$rm, GPR:$rns),
+                     "mov.l\t$rm, @-$rnd",
+                     [], NoItinerary>;
+}
 }
 
 let mayStore = 1 in {
@@ -132,6 +138,12 @@ def MOV16rm : FNM<0x2, 0x1, (outs), (ins GPR:$rm, GPR:$rn),
 def MOV32rm : FNM<0x2, 0x2, (outs), (ins GPR:$rm, GPR:$rn),
                   "mov.l\t$rm, @$rn",
                   [ (store i32:$rm, i32:$rn) ], NoItinerary>;
+
+let Constraints = "$rmd = $rms" in {
+def MOV32mrpop : FNM<0x6, 0x6, (outs GPR:$rn, GPR:$rmd), (ins GPR:$rms),
+                      "mov.l\t@${rmd}+, $rn",
+                      [], NoItinerary>;
+}
 }
 
 let Constraints = "$rnd = $rns" in {

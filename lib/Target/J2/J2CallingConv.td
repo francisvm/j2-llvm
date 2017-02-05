@@ -32,4 +32,4 @@ def RetCC_J2 : CallingConv<[
 // Callee-saved Registers.
 //===----------------------------------------------------------------------===//
 
-def CSR : CalleeSavedRegs<(add R8, R9, R10, R11, R12, R13, R14)>;
+def CSR : CalleeSavedRegs<(add R8, R9, R10, R11, R12, R13, R14, PR)>;
